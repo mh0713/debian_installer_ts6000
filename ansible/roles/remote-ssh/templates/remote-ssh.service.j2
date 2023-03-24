@@ -1,0 +1,12 @@
+[Unit]
+Description=Reverse SSH Port Forwarding to PCAP Server
+ 
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/bin/ssh -i {{ pcap_server_identity }}  -p {{ pcap_server_port }} -o ExitOnForwardFailure=yes -o ServerAliveInterval=30 -o TCPKeepAlive=no -N -R {{ remote_ssh_port }}:localhost:22 {{ pcap_server_user }}@{{ pcap_server }}
+Restart=always
+RestartSec=30
+ 
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,7 @@
+buf-proxy-himeji
+buf-proxy-kawachinagano capture_if=enp8s0f1
+buf-proxy-tatsuno capture_if=enp8s0f1
+# buf-proxy-kanazawa
+# buf-proxy-tsukuba
+buf-proxy-himeji2 capture_if=enp8s0f1
+# buf-proxy-kanazawa2 syslog_server=100.110.197.14

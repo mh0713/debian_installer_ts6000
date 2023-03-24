@@ -1,0 +1,7 @@
+- name: restart-remote-ssh
+  ansible.builtin.systemd:
+    name: remote-ssh.service
+    enabled: true
+    masked: false
+    state: restarted
+    daemon-reload: yes

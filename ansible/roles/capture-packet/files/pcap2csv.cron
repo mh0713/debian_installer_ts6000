@@ -1,0 +1,9 @@
+#!/bin/bash
+BASEDIR="/mnt/array1"
+
+pcap2csv.sh -i ${BASEDIR}/pcap/ -o ${BASEDIR}/csv/ -d ${BASEDIR}/pcap_done/
+merge_csv.sh -i ${BASEDIR}/csv/ -o ${BASEDIR}/csv_merged/ -d ${BASEDIR}/csv_done/
+
+pcap_rotate.sh ${BASEDIR}/pcap_done/
+
+exit 0

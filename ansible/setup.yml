@@ -1,0 +1,10 @@
+---
+- hosts: all
+  gather_facts: no
+  become: yes
+  roles:
+    - capture-packet
+    - td-agent
+    - dns-query-count
+#    - remote-ssh
+

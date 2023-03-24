@@ -1,0 +1,2 @@
+buf-proxy-tokyo capture_if=enp8s0f1 remote_ssh_port=8806
+buf-proxy-home capture_if=eth1

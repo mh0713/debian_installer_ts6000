@@ -1,0 +1,15 @@
+- name: Create systemd script
+  ansible.builtin.template:
+    src: remote-ssh.service.j2
+    dest: /etc/systemd/system/remote-ssh.service
+    owner: root
+  when: remote_ssh_port is defined
+  notify: restart-remote-ssh
+
+- name: Mask remote-ssh.service
+  ansible.builtin.systemd:
+    name: remote-ssh.service
+    enabled: false
+    masked: true
+    state: stopped
+  when: remote_ssh_port is not defined

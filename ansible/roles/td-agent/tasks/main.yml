@@ -1,0 +1,32 @@
+- name: Install td-agent
+  ansible.builtin.shell: curl -fsSL https://toolbelt.treasuredata.com/sh/install-ubuntu-focal-td-agent4.sh | sh
+
+- name: Change service user to root
+  ansible.builtin.copy:
+    "src": "td-agent.service"
+    "dest": "/etc/systemd/system/"
+  notify: Systemd daemon reload
+
+- name: Copy scripts
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: 0755
+  with_items:
+    - { "src": td-agent.conf, "dest": /etc/td-agent/ }
+  notify: Reload td-agent
+
+- name: Create config directory
+  ansible.builtin.file:
+    path: /etc/td-agent/conf.d/
+    state: directory
+    mode: 0755
+
+- name: Generate config files
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - { "src": buf-proxy.conf.j2, "dest": /etc/td-agent/conf.d/buf-proxy.conf }
+    - { "src": dnsquery.conf.j2, "dest": /etc/td-agent/conf.d/dnsquery.conf }
+  notify: Reload td-agent
