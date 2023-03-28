@@ -48,23 +48,23 @@
     hour: 8
     weekday: 1-5
     user: root
-    job: "packet-capture.sh -i {{ capture_if }} -h {{ inventory_hostname }}"
+    job: "packet-capture.sh -i {{ capture_if }} -h {{ inventory_hostname }}  > /var/log/packet-capture.log 2>&1"
   when: capture_if is defined
 
 - name: Delete cron entry 1
   ansible.builtin.cron:
     name: "start packet capture"
     state: absent
-  when: capture_if is defined
+  when: capture_if is not defined
 
 - name: Create cron entry 2
   ansible.builtin.cron:
     name: "analyze capture data"
     minute: 0
-    hour: 1
+    hour: 23
     weekday: 1-5
     user: root
-    job: "pcap2csv.cron"
+    job: "pcap2csv.cron > /var/log/pcap2csv.log 2>&1"
   when: capture_if is defined
 
 - name: Delete cron entry 2
