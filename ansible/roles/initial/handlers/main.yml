@@ -1,0 +1,11 @@
+- name: reload-rsyslog
+  ansible.builtin.systemd:
+    name: rsyslog.service
+    enabled: true
+    state: reloaded
+
+- name: reload-miconapl
+  ansible.builtin.systemd:
+    name: miconapl.service
+    enabled: true
+    state: reloaded
