@@ -13,4 +13,4 @@ do
   esac
 done
 
-find ${PCAP_DIR}/ -maxdepth 1 -type f -name '*.pcap' -printf '%f\n' | xargs -P $(cores.sh) -i sh -c "pcap2csv.py -i ${PCAP_DIR}/{} -o ${CSV_DIR}/{}.csv && mv ${PCAP_DIR}/{} ${PCAP_DONE_DIR}/ && gzip ${CSV_DIR}/{}.csv"
+find ${PCAP_DIR}/ -maxdepth 1 -type f -name '*.pcap' -printf '%f\n' | xargs -i sh -c "pcap2csv.py -i ${PCAP_DIR}/{} -o ${CSV_DIR}/{}.csv && mv ${PCAP_DIR}/{} ${PCAP_DONE_DIR}/ && gzip ${CSV_DIR}/{}.csv"
