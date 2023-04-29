@@ -6,11 +6,13 @@ PCAP_DIR="/mnt/array1/pcap"
 CAPTURE_IF=enp8s0f1
 HOSTNAME=$(hostname -s)
 
-while getopts i:h: OPT
+while getopts i:h:r:s: OPT
 do
   case $OPT in
-     i) CAPTURE_IF=$OPTARG;;
-     h) HOSTNAME=$OPTARG;;
+    i) CAPTURE_IF=$OPTARG;;
+    h) HOSTNAME=$OPTARG;;
+    r) ROTATES=$OPTARG;; 
+    s) SECONDS=$OPTARG;;
   esac
 done
 
