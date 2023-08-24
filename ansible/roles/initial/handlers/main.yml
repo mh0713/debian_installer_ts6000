@@ -9,3 +9,7 @@
     name: miconapl.service
     enabled: true
     state: reloaded
+
+- name: apply-sysctl-99-bridge
+  ansible.builtin.shell:
+    cmd: sysctl -w /etc/sysctl.d/99-bridge.conf

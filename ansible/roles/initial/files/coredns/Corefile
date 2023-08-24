@@ -1,0 +1,20 @@
+.:3053 {
+    log
+    errors
+    reload
+    loop
+
+    import /etc/coredns/reverse.conf
+
+    forward . /etc/resolv.conf
+}
+.:4053 {
+    log
+    errors
+    reload
+    loop
+
+    import /etc/coredns/inline.conf
+
+    forward . /etc/resolv.conf
+}

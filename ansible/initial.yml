@@ -1,7 +1,15 @@
 ---
 - hosts: all
-  gather_facts: no
+  gather_facts: yes
   become: yes
+  vars:
+  - proxy_mode: inline
+  - nginx_cache_dir: /mnt/array1/nginx/
+  - pcap_dir: /mnt/array1/pcap/
+  - pcap_done_dir: /mnt/arrap1/pcap_done/
+  - csv_dir: /mnt/array1/csv/
+  - csv_done_dir: /mnt/array1/csv_done/
+  - csv_merged_dir: /mnt/array1/csv_merged/
   roles:
     - initial
 

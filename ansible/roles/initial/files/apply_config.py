@@ -1,5 +1,4 @@
-#!/usr/bin/env python3.8
-
+#!/usr/bin/env python3
 
 import argparse
 import json
@@ -48,7 +47,8 @@ def generate_nginx_cert(
                 f"/C=JP/ST=Aichi/L=Nagoya/O=Buffalo Inc./CN={first_domain}",
             ]
         )
-        out_san.write_text("subjectAltName = " + ", ".join(f"DNS:{d}" for d in target_conf["domains"]))
+        out_san.write_text("subjectAltName = " +
+                           ", ".join(f"DNS:{d}" for d in target_conf["domains"]))
         # 証明書を作成
         subprocess.run(
             [
@@ -104,7 +104,8 @@ def generate_nginx_sites(
         key_path = cert_dir / f"{target_name}.key"
         proxy_ssl_ciphers = ["HIGH", "!aNULL", "!MD5"]
         if "proxy-ssl-ciphers" in target_conf:
-            proxy_ssl_ciphers += [c for c in target_conf["proxy-ssl-ciphers"] if c not in proxy_ssl_ciphers]
+            proxy_ssl_ciphers += [c for c in target_conf["proxy-ssl-ciphers"]
+                                  if c not in proxy_ssl_ciphers]
         lines += [
             f"    server_name {' '.join(target_conf['domains'])};",
             f"    access_log {log_path} main;",
@@ -129,8 +130,10 @@ def generate_nginx_sites(
             path: str = location_conf["path"]
             cache_enable: bool = location_conf["cache"]["enable"]
             cache_valid: str = location_conf["cache"].get("valid", "23h")
-            cache_extensions: list[str] = location_conf["cache"].get("extensions")
-            ignore_cache_control: list[str] = location_conf["cache"].get("ignore-cache-control", False)
+            cache_extensions: list[str] = location_conf["cache"].get(
+                "extensions")
+            ignore_cache_control: list[str] = location_conf["cache"].get(
+                "ignore-cache-control", False)
 
             lines += [
                 f"    location {path} {{",
@@ -189,171 +192,21 @@ def generate_dnsmasq_hosts(
     lines: list[str] = []
     lines_inline: list[str] = []
     if conf["proxy-cache"]["enable"]:
-        addresses: list[str] = []
-        if "reverse" in conf["network"]:
-            conf_reverse = conf["network"]["reverse"]
-            if "address4" in conf_reverse:
-                addresses += [conf_reverse["address4"]]
-            if "addresses6" in conf_reverse:
-                addresses += conf_reverse["addresses6"]
-            if "friend-servers" in conf_reverse:
-                addresses += conf_reverse["friend-servers"]
         for target_name, target_conf in conf["proxy-cache"]["targets"].items():
             target_name: str = target_name
-            lines += [f"{a} {d}" for d in target_conf["domains"] for a in addresses]
+            lines += [f"{a} {d}" for d in target_conf["domains"]
+                      for a in addresses]
             lines_inline += [f"<IP> {d}" for d in target_conf["domains"]]
     dnsmasq_hosts.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    dnsmasq_inline_hosts.write_text("\n".join(lines_inline) + "\n", encoding="utf-8")
-
-
-def generate_dnsmasq_inline(conf: dict, inline_conf: Path = Path("/etc/NetworkManager/dnsmasq.d/ipset.conf")) -> None:
-    lines: list[str] = []
-    if conf["proxy-cache"]["enable"]:
-        for _, target_conf in conf["proxy-cache"]["targets"].items():
-            lines += [f"ipset=/{d}/inline4,inline6" for d in target_conf["domains"]]
-    inline_conf.write_text("\n".join(lines) + "\n", encoding="utf-8")
-
-
-def generate_collect_domains(conf: dict, domains_lst: Path = Path("/etc/melco/collect-domains.lst")) -> None:
-    lines: list[str] = []
-    if conf["proxy-cache"]["enable"]:
-        for _, target_conf in conf["proxy-cache"]["targets"].items():
-            lines += target_conf["domains"]
-    domains_lst.write_text("\n".join(lines) + "\n", encoding="utf-8")
-
-
-def generate_netplan(conf: dict, netplan_yaml: Path = Path("/etc/netplan/99-buffalo.yaml")) -> None:
-    def merge_config(default: dict, conf_net: dict) -> dict:
-        result = default.copy()
-        if "dhcp4" in conf_net:
-            result["dhcp4"] = "yes" if conf_net["dhcp4"] else "no"
-        if "dhcp6" in conf_net:
-            result["dhcp6"] = "yes" if conf_net["dhcp6"] else "no"
-        addresses = []
-        if "address4" in conf_net:
-            addresses += [conf_net["address4"] + "/24"]
-        if "addresses6" in conf_net:
-            addresses += [a + "/64" for a in conf_net["addresses6"]]
-        if len(addresses) > 0:
-            result["addresses"] = addresses
-        if "gateway4" in conf_net:
-            result["gateway4"] = conf_net["gateway4"]
-        if "gateway6" in conf_net:
-            result["gateway6"] = conf_net["gateway6"]
-        if "nameservers" in conf_net:
-            result["nameservers"] = {"addresses": conf_net["nameservers"]}
-        return result
-
-    # br-inilne
-    result_inline = {
-        "interfaces": ["enp8s0f0", "enp8s0f1"],
-        "dhcp4": "yes",
-        "dhcp6": "yes",
-        "dhcp4-overrides": {"route-metric": 50},
-        "parameters": {"forward-delay": 0, "stp": "no"},
-    }
-    if "inline" in conf["network"]:
-        result_inline = merge_config(result_inline, conf["network"]["inline"])
-    # br-reverse
-    result_reverse = {
-        "interfaces": ["enp2s0"],
-        "dhcp4": "no",
-        "dhcp6": "no",
-        "parameters": {"forward-delay": 0, "stp": "no"},
-    }
-    if "reverse" in conf["network"]:
-        result_reverse = merge_config(result_reverse, conf["network"]["reverse"])
-    # merge
-    result = {
-        "network": {
-            "version": 2,
-            "renderer": "NetworkManager",
-            "ethernets": {
-                "enp8s0f0": {"dhcp4": "no"},
-                "enp8s0f1": {"dhcp4": "no"},
-                "enp2s0": {"dhcp4": "no"},
-            },
-            "bridges": {
-                "br-inline": result_inline,
-                "br-reverse": result_reverse,
-            },
-        }
-    }
-    with netplan_yaml.open("w", encoding="utf-8") as f:
-        yaml.dump(result, f)
-
-
-def generate_edumall_crawler(
-    conf: dict,
-    crawler_dir: Path = Path("/home/buffalo/docker/edumall-crawler/"),
-    cron_file: Path = Path("/etc/cron.d/edumall-crawler"),
-) -> None:
-    # 既存の設定を削除
-    profile_root = crawler_dir / "profile"
-    if profile_root.is_dir():
-        for dir in profile_root.iterdir():
-            if dir.is_dir():
-                shutil.rmtree(dir)
-    # 新しい設定を作成
-    crontab_lines: list[str] = []
-    for target_name, target_conf in conf["proxy-cache"]["targets"].items():
-        target_name: str = target_name
-        # edumall-crawler を使うかどうか判定
-        if "crawler" not in target_conf:
-            continue
-        if target_conf["crawler"]["class"] != "edumall-crawler":
-            continue
-        # プロファイルを作成
-        profile_dir = crawler_dir / "profile" / target_name
-        profile_dir.mkdir(parents=True, exist_ok=True)
-        with (profile_dir / "profile.json").open("w", encoding="utf-8") as f:
-            json.dump(target_conf["crawler"]["profile"], f, ensure_ascii=False)
-        profile_compose = {
-            "version": "3",
-            "services": {
-                "selenium": {
-                    "extra_hosts": [f"{d}:172.16.53.1" for d in target_conf["domains"]],
-                },
-                "crawl": {
-                    "volumes": [f"./profile/{target_name}:/profile"],
-                },
-            },
-        }
-        with (profile_dir / "docker-compose.override.yaml").open("w", encoding="utf-8") as f:
-            yaml.dump(profile_compose, f)
-        # 無効ならcronを追加しない
-        if not target_conf["crawler"]["enable"]:
-            continue
-        # cron行を追加
-        schedule = target_conf["crawler"]["schedule"]
-        if "minute" not in schedule or schedule["minute"] == "random":
-            schedule["minute"] = random.randrange(0, 60)
-        if "hour" not in schedule or schedule["hour"] == "random":
-            schedule["hour"] = random.randrange(0, 24)
-        if "day-of-month" not in schedule:
-            schedule["day-of-month"] = "*"
-        if "month" not in schedule:
-            schedule["month"] = "*"
-        if "day-of-week" not in schedule:
-            schedule["day-of-week"] = "*"
-        crontab_lines.append(
-            f"{schedule['minute']} {schedule['hour']} {schedule['day-of-month']} "
-            f"{schedule['month']} {schedule['day-of-week']} root "
-            f"cd {crawler_dir.absolute()} ; "
-            f"/usr/bin/docker compose -f docker-compose.yaml -f profile/{target_name}/docker-compose.override.yaml "
-            "up --abort-on-container-exit | "
-            f"logger -i -p cron.info -t 'edumall-crawler_{target_name}'"
-        )
-    cron_file.write_text("\n".join(crontab_lines) + "\n", encoding="utf-8")
-    shutil.chown(cron_file, "root")
-    cron_file.chmod(0o644)
+    dnsmasq_inline_hosts.write_text(
+        "\n".join(lines_inline) + "\n", encoding="utf-8")
 
 
 if __name__ == "__main__":
     # 引数の処理
     parser = argparse.ArgumentParser()
-    parser.add_argument("--no-restart", dest="restart", action="store_const", const=False, default=True)
-    parser.add_argument("--restart-netplan", dest="restart_netplan", action="store_const", const=True, default=False)
+    parser.add_argument("--no-restart", dest="restart",
+                        action="store_const", const=False, default=True)
     args = parser.parse_args()
 
     # 読み取り
@@ -362,24 +215,13 @@ if __name__ == "__main__":
 
     # 設定
     print("Generating...")
-    generate_netplan(config)
-    generate_dnsmasq_inline(config)
-    generate_collect_domains(config)
     generate_dnsmasq_hosts(config)
     generate_nginx_cert(config)
     make_nginx_log_dir(config)
     generate_nginx_sites(config)
-    generate_edumall_crawler(config)
 
     # 再起動
     if args.restart:
-        if args.restart_netplan:
-            print("Restarting netplan...")
-            subprocess.run(["netplan", "apply"])
-            time.sleep(1)
-            print("Updating LCD...")
-            subprocess.run(["/usr/local/bin/update-lcd"])
-            time.sleep(1)
         print("Reloading nginx...")
         subprocess.run(["systemctl", "reload", "nginx"])
         time.sleep(1)
@@ -391,11 +233,6 @@ if __name__ == "__main__":
         subprocess.run(["/usr/local/bin/update-hosts-inline"])
         print("Updating iptables...")
         subprocess.run(["/usr/local/bin/update-redirect-rules"])
-        time.sleep(1)
-        print("Resetting ipset...")
-        subprocess.run(["/sbin/ipset", "flush", "inline4"])
-        subprocess.run(["/sbin/ipset", "flush", "inline6"])
-        subprocess.run(["/usr/local/bin/collect-ip"])
         time.sleep(1)
         print("Enabling ufw...")
         subprocess.run(["ufw", "--force", "enable"])

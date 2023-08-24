@@ -1,0 +1,3 @@
+#!/bin/sh
+/usr/local/bin/update-redirect-rules
+exit 0

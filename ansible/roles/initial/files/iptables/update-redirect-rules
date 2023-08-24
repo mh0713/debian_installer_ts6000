@@ -1,0 +1,28 @@
+#!/bin/bash
+# Add PREROUTING nat route on boot
+# IPv4 DNS
+if ! iptables -t nat -C PREROUTING -i br-reverse -p tcp --dport 53 -j REDIRECT --to-port 3053; then
+    iptables -t nat -A PREROUTING -i br-reverse -p tcp --dport 53 -j REDIRECT --to-port 3053
+    iptables -t nat -A PREROUTING -i br-reverse -p udp --dport 53 -j REDIRECT --to-port 3053
+fi
+for dns in `cat /run/NetworkManager/no-stub-resolv.conf | grep '^nameserver' | cut -f2 -d' ' | grep '\.'`; do
+    if ! iptables -t nat -C PREROUTING -i br-inline -d "${dns}" -p tcp --dport 53 -j REDIRECT --to-port 4053; then
+        iptables -t nat -A PREROUTING -i br-inline -d "${dns}" -p tcp --dport 53 -j REDIRECT --to-port 4053
+        iptables -t nat -A PREROUTING -i br-inline -d "${dns}" -p udp --dport 53 -j REDIRECT --to-port 4053
+    fi
+done
+# IPv6 DNS
+if ! ip6tables -t nat -C PREROUTING -i br-reverse -p tcp --dport 53 -j REDIRECT --to-port 3053; then
+    ip6tables -t nat -A PREROUTING -i br-reverse -p tcp --dport 53 -j REDIRECT --to-port 3053
+    ip6tables -t nat -A PREROUTING -i br-reverse -p udp --dport 53 -j REDIRECT --to-port 3053
+fi
+for dns in `cat /run/NetworkManager/no-stub-resolv.conf | grep '^nameserver' | cut -f2 -d' ' | grep ':'`; do
+    if ! ip6tables -t nat -C PREROUTING -i br-inline -d "${dns}" -p tcp --dport 53 -j REDIRECT --to-port 4053; then
+        ip6tables -t nat -A PREROUTING -i br-inline -d "${dns}" -p tcp --dport 53 -j REDIRECT --to-port 4053
+        ip6tables -t nat -A PREROUTING -i br-inline -d "${dns}" -p udp --dport 53 -j REDIRECT --to-port 4053
+    fi
+done
+# ZeroTier
+if ! iptables -t nat -C PREROUTING -i zt0 -p tcp --dport 9080 -j DNAT --to-destination 127.0.0.1:9080; then
+    iptables -t nat -A PREROUTING -i zt0 -p tcp --dport 9080 -j DNAT --to-destination 127.0.0.1:9080
+fi
