@@ -6,123 +6,88 @@ import subprocess
 import sys
 import textwrap
 
+
 def proc_run(cmd):
     proc = subprocess.run(cmd, capture_output=True)
     if proc.returncode != 0:
-        print(proc.stderr.decode('utf-8'))
+        print(proc.stderr.decode("utf-8"))
         sys.exit(1)
-    
+
+
 def get_netifs():
     for entry in os.listdir("/sys/class/net"):
-        if entry in ["bonding_masters","lo"] or entry.startswith("br"):
-            continue
-        yield entry
+        if entry.startswith("en") or entry.startswith("eth"):
+            yield entry
 
-def get_if(netif_role, net_ifs):
-    while True:
-        all_ifs = ", ".join(net_ifs)
-        netif = input(f"{netif_role}を[{all_ifs}]から選択してください > ")
-        if netif in net_ifs:
-            return netif
-        else:
-            print(f"{netif} not in ${net_ifs}")
 
-def get_mode():
-    while True:
-        mode = input("モードを選択してください [ブリッジ = b / リバースプロキシ = r] > ")
-        if mode == "b":
-            return "bridge"
-        elif mode == "r":
-            return "reverse"
+def create_netplan(args, conf="/etc/netplan/99-default.yaml"):
+    from jinja2 import Template
 
-def create_netplan(args):
-    dns_text = ",".join([f'{str(d)}' for d in args["dns"]])
-
-    if args["mode"] == "bridge":
-        if args["ip"] == "dhcp":
-            netplan = f"""
-                network:
-                    renderer: networkd
-                    version: 2
-                    ethernets:
-                        {args["wan_if"]}:
-                            dhcp4: no
-                        {args["lan_if"]}:
-                            dhcp4: no
-                    bridges:
-                        br0:
-                            interfaces:
-                                - {args["wan_if"]}
-                                - {args["lan_if"]}
-                            dhcp4: yes
-            """
-        else:
-            netplan = f"""
-                network:
-                    renderer: networkd
-                    version: 2
-                    ethernets:
-                        {args["wan_if"]}:
-                            dhcp4: no
-                        {args["lan_if"]}:
-                            dhcp4: no
-                    bridges:
-                        br0:
-                            interfaces:
-                                - {args["wan_if"]}
-                                - {args["lan_if"]}
-                            dhcp4: no
-                            addresses:
-                                - {args["ip"]}
-                            routes:
-                                - to: default
-                                  via: {args["dgw"]}
-                            nameservers:
-                                addresses: [{dns_text}]
-            """
+    if args["ip"] == "dhcp":
+        netplan_tpl = """
+            network:
+                renderer: networkd
+                version: 2
+                ethernets:
+                {%- for net_if in args["net_ifs"] %}
+                    - {{ net_if }}:
+                        dhcp4: no
+                {%- endfor %}
+                bridges:
+                    br0:
+                        interfaces:
+                        {%- for net_if in args["net_ifs"] %}
+                            - {{ net_if }}
+                        {%- endfor %}
+                        dhcp4: yes
+        """
     else:
-        if args["ip"] == "dhcp":
-            netplan = f"""
-                network:
-                    renderer: networkd
-                    version: 2
-                    ethernets:
-                        {args["lan_if"]}:
-                            dhcp4: yes
-            """
-        else:
-            netplan = f"""
-                network:
-                    renderer: networkd
-                    version: 2
-                    ethernets:
-                        {args["lan_if"]}:
-                            dhcp4: no
+        netplan_tpl = """
+            network:
+                renderer: networkd
+                version: 2
+                ethernets:
+                {%- for net_if in args["net_ifs"] %}
+                    {{ net_if }}:
+                        dhcp4: no
+                {%- endfor %}
+                bridges:
+                    br0:
+                        interfaces:
+                        {%- for net_if in args["net_ifs"] %}
+                            - {{ net_if }}
+                        {%- endfor %}
+                        dhcp4: no
+                        addresses:
+                            - {{args["ip"]}}
+                        routes:
+                            - to: default
+                              via: {{args["dgw"]}}
+                        nameservers:
                             addresses:
-                                - {args["ip"]}
-                            routes:
-                                - to: default
-                                  via: {args["dgw"]}
-                            nameservers:
-                                addresses: [{dns_text}]
-            """
+                            {%- for dns in args["dns"] %}
+                                - {{ dns }}
+                            {%- endfor %}
+        """
 
-    netplan = textwrap.dedent(netplan)[1:-1]
+    netplan_tpl = textwrap.dedent(netplan_tpl)[1:-1]
 
-    return netplan
+    netplan = Template(netplan_tpl).render(args=args)
 
-def apply_netplan(plan, conf="/etc/netplan/99-default.yaml"):
     try:
         with open(conf, "w") as f:
-            f.write(plan)
-            proc_run(["netplan","apply"])
+            f.write(netplan)
     except Exception as e:
-        print("ネットワーク設定の変更に失敗しました")
+        print("ネットワーク設定の保存に失敗しました")
         print(e)
         return False
 
     return True
-    
+
+
+def apply_netplan(plan, conf="/etc/netplan/99-default.yaml"):
+    proc_run(["netplan", "apply"])
+
 
 def get_ip():
     while True:
@@ -135,6 +100,7 @@ def get_ip():
             except:
                 print(f"IPアドレスの形式が不正です: {ip}")
 
+
 def get_dgw():
     while True:
         dgw = input("デフォルトゲートウェイ (192.168.11.1)> ")
@@ -142,7 +108,8 @@ def get_dgw():
             return ipaddress.ip_address(dgw)
         except:
             print(f"デフォルトゲートウェイの形式が不正です: {dgw}")
-    
+
+
 def get_dns():
     while True:
         dns = input("DNSサーバー(192.168.11.252 192.168.11.253)> ")
@@ -158,7 +125,6 @@ def get_dns():
             print(f"DNSの形式が不正です: {d}")
 
 
-
 def main():
     wan_if = dgw = None
     dns = []
@@ -167,21 +133,7 @@ def main():
         print("root で実行してください")
         sys.exit(1)
 
-    mode = get_mode()
-
     net_ifs = [netif for netif in get_netifs()]
-    if len(net_ifs) == 0:
-        print("ネットワークポートが見つかりません")
-        sys.exit(1)
-    if len(net_ifs) == 1 and mode == "reverse":
-        input("ブリッジにはネットワークポートが２つ必要です")
-        sys.exit(1)
-
-    if mode == "bridge":
-        wan_if = get_if("WANポート", net_ifs)
-        net_ifs.remove(wan_if)
-
-    lan_if = get_if("LANポート", net_ifs)
 
     ip = get_ip()
     if ip != "dhcp":
@@ -189,16 +141,18 @@ def main():
         dns = get_dns()
 
     print("■パッケージ情報の更新中")
-    proc_run(["apt","update"])
+    proc_run(["apt", "update"])
     print("■パッケージのアップデート中")
-    proc_run(["apt","-y","upgrade"])
+    proc_run(["apt", "-y", "upgrade"])
     print("■必要なパッケージをインストール中")
-    proc_run(["apt","-y","install","ansible","netplan.io"])
+    proc_run(["apt", "-y", "install", "ansible", "netplan.io", "python3-pip", "curl"])
 
     print("■ネットワーク設定を変更中")
-    netplan = create_netplan({"mode":mode, "wan_if":wan_if, "lan_if":lan_if, "ip":ip, "dgw":dgw, "dns":dns})
+    netplan = create_netplan({"net_ifs": net_ifs, "ip": ip, "dgw": dgw, "dns": dns})
+    # print(netplan)
     apply_netplan(netplan)
     print("■設定が完了しました")
-    
-if __name__ == '__main__':
+
+
+if __name__ == "__main__":
     main()
