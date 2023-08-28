@@ -26,7 +26,7 @@ log_format ltsv 'time:$time_iso8601\t'
 proxy_cache_path    {{data_dir}}/nginx/cache keys_zone=cache:16m levels=1:2 max_size=128g inactive=7d;
 proxy_temp_path     {{data_dir}}/nginx/temp;
 
-resolver {{upstream_dns}} ipv6=off;
+resolver {{upstream_dns | join(' ')}} ipv6=off;
 
 access_log {{data_dir}}/nginx/log/access.ltsv ltsv;
 

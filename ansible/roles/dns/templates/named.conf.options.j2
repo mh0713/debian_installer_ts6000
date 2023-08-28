@@ -1,0 +1,17 @@
+options {
+        listen-on port 53 { any; };
+        directory       "/var/cache/bind";
+                
+        allow-query { any; };
+        allow-query-cache { localhost; localnets;};
+        allow-recursion { localhost; localnets;};
+        recursion yes;
+        forward only;
+                
+        forwarders {
+            {% for dns in upstream_dns %}
+            {{ dns }};
+            {% endfor %}
+        };
+};
+

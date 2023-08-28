@@ -1,5 +1,17 @@
 data_dir: /data
 
-upstream_dns: 8.8.8.8 8.8.4.4
+upstream_dns:
+  8.8.8.8:
+  8.8.4.4:
 
 capture_if: br0
+
+redirect_domains:
+  download.windowsupdate.com:
+  tlu.dl.delivery.mp.microsoft.com:
+  officecdn.microsoft.com.edgesuite.net:
+  officecdn.microsoft.com:
+  dl.google.com:
+  gvt1.com:
+  deb.debian.org:
+  security.debian.org:

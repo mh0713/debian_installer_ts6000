@@ -1,0 +1,7 @@
+{% for domain in redirect_domains %}
+zone "{{ domain }}." IN {
+        type master;
+        file "/etc/bind/intercept.zone";
+};
+
+{% endfor %}

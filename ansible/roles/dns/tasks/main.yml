@@ -1,0 +1,12 @@
+- name: Install bind
+  ansible.builtin.apt:
+    name: bind9
+
+- name: Generate config files
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - { "src": named.conf.local.j2, "dest": /etc/bind/named.conf.local }
+    - { "src": named.conf.options.j2, "dest": /etc/bind/named.conf.options }
+  notify: Reload bind

@@ -34,7 +34,6 @@
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
   with_items:
-    - {"src":"global-conf.d/stream.conf", "dest":/etc/nginx/global-conf.d/}
     - {"src":"sites-enabled/sites-cache", "dest":/etc/nginx/sites-enabled/}
     - {"src":"sites-cache/debian.conf", "dest":/etc/nginx/sites-cache/}
     - {"src":"sites-cache/google.conf", "dest":/etc/nginx/sites-cache/}
@@ -54,6 +53,7 @@
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
   with_items:
+    - {"src":"global-conf.d/stream.conf.j2", "dest":/etc/nginx/global-conf.d/}
     - { "src": logrotate.d/nginx-cache.j2, "dest": /etc/logrotate.d/nginx-cache }
   notify: Reload nginx
 

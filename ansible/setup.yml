@@ -3,6 +3,7 @@
   gather_facts: no
   become: yes
   roles:
+    - dns
     - capture-packet
     - fluent-bit
     - nginx
