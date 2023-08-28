@@ -1,5 +1,5 @@
 - name: Install fluent-bit
-  ansible.builtin.shell: curl https://raw.githubusercontent.com/fluent/fluent-bit/master/install.sh | sudo sh
+  ansible.builtin.shell: curl https://raw.githubusercontent.com/fluent/fluent-bit/master/install.sh | sh
 
 - name: Create nginx dirs
   ansible.builtin.file:
