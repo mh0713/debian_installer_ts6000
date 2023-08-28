@@ -2,11 +2,19 @@
   ansible.builtin.apt:
     name: bind9
 
+- name: Modify /etc/default/named
+  ansible.builtin.lineinfile:
+    path: /etc/default/named
+    regexp: ^OPTIONS
+    line: OPTIONS="-u bind -4"
+  notify: Reload bind
+
 - name: Generate config files
   ansible.builtin.template:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
   with_items:
+    - { "src": intercept.zone.j2, "dest": /etc/bind/intercept.zone }
     - { "src": named.conf.local.j2, "dest": /etc/bind/named.conf.local }
     - { "src": named.conf.options.j2, "dest": /etc/bind/named.conf.options }
   notify: Reload bind
