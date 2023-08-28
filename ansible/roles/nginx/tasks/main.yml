@@ -1,0 +1,68 @@
+- name: Install nginx-full
+  ansible.builtin.apt: 
+    name: nginx-full
+
+- name: Add include in global configuration
+  ansible.builtin.lineinfile:
+    path: /etc/nginx/nginx.conf
+    regexp: '^include /etc/nginx/global-conf.d/\*.conf;'
+    line: 'include /etc/nginx/global-conf.d/*.conf;'
+  notify: Reload nginx
+
+- name: Disable default site
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: Reload nginx
+
+
+- name: Create nginx dirs
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner | default(omit) }}"
+    group: "{{ item.group | default(omit) }}"
+    mode: "{{ item.mode | default(omit)}}"
+  with_items:
+    - {"path":"{{ data_dir }}/nginx/cache/"}
+    - {"path":"{{ data_dir }}/nginx/log/"}
+    - {"path":"/etc/nginx/global-conf.d/"}
+    - {"path":"/etc/nginx/sites-cache/"}
+
+- name: Copy nginx config
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - {"src":"global-conf.d/stream.conf", "dest":/etc/nginx/global-conf.d/}
+    - {"src":"sites-enabled/sites-cache", "dest":/etc/nginx/sites-enabled/}
+    - {"src":"sites-cache/debian.conf", "dest":/etc/nginx/sites-cache/}
+    - {"src":"sites-cache/google.conf", "dest":/etc/nginx/sites-cache/}
+    - {"src":"sites-cache/windowsupdate.conf", "dest":/etc/nginx/sites-cache/}
+  notify: Reload nginx
+
+- name: Generate nginx config
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - { "src": conf.d/proxy_common.conf.j2, "dest": /etc/nginx/conf.d/proxy_common.conf }
+  notify: Reload nginx
+
+- name: Generate logrotate config
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - { "src": logrotate.d/nginx-cache.j2, "dest": /etc/logrotate.d/nginx-cache }
+  notify: Reload nginx
+
+
+# - name: Generate config files
+#   ansible.builtin.template:
+#     src: "{{ item.src }}"
+#     dest: "{{ item.dest }}"
+#   with_items:
+#     - { "src": fluent-bit.conf.j2, "dest": /etc/fluent-bit/fluent-bit.conf }
+#     - { "src": parsers.conf.j2, "dest": /etc/fluent-bit/parsers.conf }
+#   notify: Reload fluent-bit

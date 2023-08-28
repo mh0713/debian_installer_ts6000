@@ -1,3 +1,0 @@
-#!/bin/bash
-
-echo "$(date --date '1 days ago' +'%Y%m%d') $(grep dnsmasq /var/log/syslog.1 | grep query | wc -l)" >> /var/log/dns-query.log

@@ -1,8 +1,5 @@
-zerotier_network_id: 233ccaac27679e40
-ansible_sudo_pass: Uplvhbxb3115
+data_dir: /data
 
-syslog_server: 172.16.237.35
+upstream_dns: 8.8.8.8 8.8.4.4
 
-
-
-
+capture_if: br0

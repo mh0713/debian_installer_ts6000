@@ -29,15 +29,4 @@
       @type ltsv
     </format>
   </store>
-  <store>
-    @type forward
-    <buffer>
-      retry_forever true
-      retry_type periodic
-    </buffer>
-    <server>
-      name buf-proxy-dev
-      host {{ syslog_server }}
-    </server>
-  </store>
 </match>

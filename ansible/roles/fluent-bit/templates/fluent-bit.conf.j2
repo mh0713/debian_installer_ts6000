@@ -1,0 +1,56 @@
+[SERVICE]
+    flush        1
+    daemon       Off
+    log_level    info
+    parsers_file parsers.conf
+    plugins_file plugins.conf
+
+    http_server  Off
+    http_listen  0.0.0.0
+    http_port    2020
+
+    storage.metrics on
+
+# time:2023-01-19T18:19:37+09:00
+# remote_addr:10.103.111.9
+# request_method:GET
+# request_length:1939
+# https:on
+# host:dl.google.com
+# uri:/
+# query_string:-
+# status:302
+# bytes_sent:591
+# referer:-
+# useragent:Mozilla/5.0 (X11; CrOS x86_64 14989.107.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36
+# forwardedfor:-
+# request_time:0.168
+# upstream_addr:172.217.25.174:443
+# upstream_bytes_received:552
+# upstream_response_length:52
+# upstream_response_time:0.164
+# upstream_cache_status:MISS
+# cache_host:buf-proxy-03
+
+[INPUT]
+    Name tail
+    Tag nginx_access_log
+    Parser access_log_ltsv
+    Path {{data_dir}}/nginx/log/access.ltsv
+
+[FILTER]
+    Name record_modifier
+    Match nginx_access_log
+    Record cache_host ${HOSTNAME}
+
+[FILTER]
+    Name modify
+    Match nginx_access_log
+    Rename time log_time
+
+[OUTPUT]
+    Name file
+    Format ltsv
+    Match nginx_access_log
+    Path {{data_dir}}/nginx/log2/
+    File nginx_access.ltsv

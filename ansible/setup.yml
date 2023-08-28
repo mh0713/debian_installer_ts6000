@@ -4,7 +4,8 @@
   become: yes
   roles:
     - capture-packet
-    - td-agent
-    - dns-query-count
+    - fluent-bit
+    - nginx
+#    - dns-query-count
 #    - remote-ssh
 

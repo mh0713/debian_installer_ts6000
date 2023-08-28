@@ -5,6 +5,7 @@
 - name: Install python module nfstream
   ansible.builtin.pip:
     name: nfstream
+    extra_args: --break-system-packages
 
 - name: Create pcap directory
   ansible.builtin.file:
@@ -14,11 +15,18 @@
     group: "{{ item.group | default(omit) }}"
     mode: "{{ item.mode | default(omit)}}"
   with_items:
-    - {"path":/mnt/array1/pcap/, "owner":tcpdump, "group":tcpdump }
-    - {"path":/mnt/array1/pcap_done/}
-    - {"path":/mnt/array1/csv/}
-    - {"path":/mnt/array1/csv_done/}
-    - {"path":/mnt/array1/csv_merged/}
+    - {"path":"{{ data_dir }}/pcap/", "owner":tcpdump, "group":tcpdump }
+    - {"path":"{{ data_dir }}/pcap_done/"}
+    - {"path":"{{ data_dir }}/csv/"}
+    - {"path":"{{ data_dir }}/csv_done/"}
+    - {"path":"{{ data_dir }}/csv_merged/"}
+
+- name: Genarate config
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  with_items:
+    - { "src": packet-capture.conf.j2, "dest": /etc/packet-capture.conf }
 
 - name: Copy packet scripts
   ansible.builtin.copy:
@@ -33,7 +41,6 @@
     - {"src":merge_csv.py, "dest":/usr/local/bin/merge_csv.py}
     - {"src":merge_csv.sh, "dest":/usr/local/bin/merge_csv.sh}
     - {"src":pcap2csv.cron, "dest":/usr/local/bin/pcap2csv.cron}
-    - {"src":cores.sh, "dest":/usr/local/bin/cores.sh}
 
 - name: Add PATH
   ansible.builtin.cron:
@@ -48,7 +55,7 @@
     hour: 8
     weekday: 1-5
     user: root
-    job: "packet-capture.sh -i {{ capture_if }} -h {{ inventory_hostname }} -r {{ capture_rotates | default('1') }} -s {{ capture_seconds | default('28800') }} > /var/log/packet-capture.log 2>&1"
+    job: "packet-capture.sh -i {{ capture_if }} -r {{ capture_rotates | default('1') }} -s {{ capture_seconds | default('28800') }} > /var/log/packet-capture.log 2>&1"
   when: capture_if is defined
 
 - name: Delete cron entry 1

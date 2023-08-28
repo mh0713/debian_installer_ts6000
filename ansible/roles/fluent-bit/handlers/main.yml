@@ -1,0 +1,5 @@
+- name: Reload fluent-bit
+  ansible.builtin.service:
+    name: fluent-bit.service
+    enabled: true
+    state: restarted
