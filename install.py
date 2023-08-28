@@ -188,17 +188,17 @@ def main():
         dgw = get_dgw()
         dns = get_dns()
 
+    print("■パッケージ情報の更新中")
     proc_run(["apt","update"])
     print("■パッケージのアップデート中")
-    proc_run(["apt","upgrade"])
+    proc_run(["apt","-y","upgrade"])
     print("■必要なパッケージをインストール中")
     proc_run(["apt","-y","install","ansible","netplan.io"])
 
     print("■ネットワーク設定を変更中")
     netplan = create_netplan({"mode":mode, "wan_if":wan_if, "lan_if":lan_if, "ip":ip, "dgw":dgw, "dns":dns})
     apply_netplan(netplan)
-
-
-
+    print("■設定が完了しました")
+    
 if __name__ == '__main__':
     main()
