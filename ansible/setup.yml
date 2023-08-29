@@ -4,6 +4,7 @@
   become: yes
   roles:
     - startup
+    - cockpit
     - mariadb
     - zabbix-server
     - dns

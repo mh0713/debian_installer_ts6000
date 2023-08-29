@@ -1,0 +1,6 @@
+- name: Install package
+  ansible.builtin.apt:
+    name: cockpit
+
+
+
