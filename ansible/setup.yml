@@ -4,6 +4,8 @@
   become: yes
   roles:
     - startup
+    - mariadb
+    - zabbix-server
     - dns
     - capture-packet
     - fluent-bit

@@ -1,0 +1,81 @@
+- name: Install repository
+  ansible.builtin.apt:
+    deb: https://repo.zabbix.com/zabbix/6.0/debian/pool/main/z/zabbix-release/zabbix-release_6.0-5+debian12_all.deb
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: Install package
+  ansible.builtin.apt:
+    pkg:
+      - zabbix-server-mysql
+      - zabbix-frontend-php
+      - zabbix-nginx-conf
+      - zabbix-sql-scripts
+      - zabbix-agent
+      - python3-mysqldb
+
+- name: DB root user password setting
+  mysql_user:
+    login_user: "{{mariadb_root_user}}"
+    login_password: "{{mariadb_root_pass}}"
+    name: "{{mariadb_root_user}}"
+    password: "{{mariadb_root_pass}}"
+    state: present
+    check_implicit_admin: yes
+
+#  create database zabbix character set utf8mb4 collate utf8mb4_bin
+- name: Create database
+  community.mysql.mysql_db:
+    login_user: "{{mariadb_root_user}}"
+    login_password: "{{mariadb_root_pass}}"
+    name: "{{mariadb_zabbix_db}}"
+    encoding: utf8mb4
+    collation: utf8mb4_bin
+    state: present
+
+- name: Create DB user
+  community.mysql.mysql_user:
+    login_user: "{{mariadb_root_user}}"
+    login_password: "{{mariadb_root_pass}}"
+    name: "{{mariadb_zabbix_user}}"
+    password: "{{mariadb_zabbix_pass}}"
+    state: present
+    priv: '{{mariadb_zabbix_user}}.*:ALL'
+
+- name: Set option log_bin_trust_function_creators => 1
+  community.mysql.mysql_variables:
+    login_user: "{{mariadb_root_user}}"
+    login_password: "{{mariadb_root_pass}}"
+    variable: log_bin_trust_function_creators
+    value: 1
+
+- name: Check table
+  community.mysql.mysql_query:
+    login_user: "{{mariadb_zabbix_user}}"
+    login_password: "{{mariadb_zabbix_pass}}"
+    query: select count(*) as cnt from information_schema.tables where table_schema='{{mariadb_zabbix_db}}'
+  register: table_count
+
+- name: Debug table_count
+  ansible.builtin.debug:
+    var: table_count
+
+- name: Import initial schema and data
+  ansible.builtin.shell:
+    cmd: zcat /usr/share/zabbix-sql-scripts/mysql/server.sql.gz | mysql --default-character-set=utf8mb4 -u{{mariadb_zabbix_user}} -p{{mariadb_zabbix_pass}} zabbix
+  when: table_count.query_result[0][0].cnt == 0
+
+- name: Set option log_bin_trust_function_creators => 0
+  community.mysql.mysql_variables:
+    login_user: "{{mariadb_root_user}}"
+    login_password: "{{mariadb_root_pass}}"
+    variable: log_bin_trust_function_creators
+    value: 0
+
+- name: Set DB password to zabbix conf
+  ansible.builtin.lineinfile:
+    path: /etc/zabbix/zabbix_server.conf
+    regexp: ^DBPassword=
+    line: DBPassword={{mariadb_zabbix_pass}}

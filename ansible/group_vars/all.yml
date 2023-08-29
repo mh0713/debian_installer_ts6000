@@ -15,3 +15,11 @@ redirect_domains:
   gvt1.com:
   deb.debian.org:
   security.debian.org:
+
+mariadb_root_user: root
+mariadb_root_pass: p@ssw0rd
+
+mariadb_zabbix_user: zabbix
+mariadb_zabbix_pass: p@ssw0rd
+
+mariadb_zabbix_db: zabbix
