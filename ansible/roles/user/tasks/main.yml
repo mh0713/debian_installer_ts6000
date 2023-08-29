@@ -1,0 +1,11 @@
+- name: Add packages
+  ansible.builtin.apt:
+    pkg:
+      - sudo
+
+- name: Create user
+  ansible.builtin.user:
+    name: "{{ local_user_name }}"
+    shell: /bin/bash
+    groups: sudo
+    password: "{{ local_user_pass | password_hash }}"

@@ -145,7 +145,7 @@ def main():
     print("■パッケージのアップデート中")
     proc_run(["apt", "-y", "upgrade"])
     print("■必要なパッケージをインストール中")
-    proc_run(["apt", "-y", "install", "ansible", "netplan.io", "python3-pip", "curl"])
+    proc_run(["apt", "-y", "install", "ansible", "netplan.io", "python3-pip", "python3-passlib","curl"])
 
     print("■ネットワーク設定を変更中")
     netplan = create_netplan({"net_ifs": net_ifs, "ip": ip, "dgw": dgw, "dns": dns})
