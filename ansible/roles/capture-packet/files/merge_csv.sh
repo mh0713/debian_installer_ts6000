@@ -15,7 +15,13 @@ done
 
 mkdir -p ${DONE_DIR}
 
-PREFIX=$(find ${INPUT_DIR} -maxdepth 1 -name "*.csv.gz" -printf "%f\n" | cut -d "-" -f 1,2,3,4 | sort | uniq)
+
+temp=$(mktemp)
+for f in $(find ${INPUT_DIR} -maxdepth 1 -name "*.csv.gz" -printf "%f\n" | sort); do
+  echo ${f%-*} >> ${temp}
+done
+PREFIX=$(cat ${temp} | sort | uniq)
+rm ${temp}
 
 for p in ${PREFIX}; do
     echo "merge ${p}*.csv.gz => ${p}.csv.gz"

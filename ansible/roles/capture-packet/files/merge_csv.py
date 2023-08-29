@@ -3,6 +3,7 @@
 import argparse
 import glob
 import os
+import re
 import sys
 
 import pandas as pd
@@ -38,16 +39,22 @@ prefix = args.prefix
 
 first = True
 for fpath in glob.glob("%s/%s*.csv.gz" % (input_dir, prefix)):
-    print(fpath)
+    print(f"fpath: {fpath}")
     fname = os.path.basename(fpath)
-    # ex) csv/buf-proxy-himeji2-20230124-090001.pcap.csv.gz
-    hostname = '-'.join(fname.split('-')[0:3])
+    print(f"fname: {fname}")
+    # ex) buf-proxy-himeji2-20230124-090001.csv.gz
+    # ex) proxy-dev-20230124-090001.csv.gz
+    # ホスト名は - を含む可変長文字列
+
+    m = re.match(r'(?P<hostname>\S+)-(?P<logdate>\d{8})-(?P<logtime>\d{6})\.pcap\.csv\.gz', fname) 
+
+    hostname = m.group("hostname")
     logdatetime = "%s/%s/%s %s:%s" % (
-        fname.split('-')[3][0:4],
-        fname.split('-')[3][4:6],
-        fname.split('-')[3][6:8],
-        fname.split('-')[4][0:2],
-        fname.split('-')[4][2:4]
+        m.group("logdate")[0:4],
+        m.group("logdate")[4:6],
+        m.group("logdate")[6:8],
+        m.group("logtime")[0:2],
+        m.group("logtime")[2:4]
     )
     # debug: print(hostname, logdatetime)
 

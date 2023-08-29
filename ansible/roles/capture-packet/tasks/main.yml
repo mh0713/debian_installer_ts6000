@@ -1,6 +1,9 @@
-- name: Install tcpdump
+- name: Install packages
   ansible.builtin.apt:
-    name: tcpdump
+    pkg:
+      - tcpdump
+      - pigz
+      - python3-pandas
 
 - name: Install python module nfstream
   ansible.builtin.pip:
