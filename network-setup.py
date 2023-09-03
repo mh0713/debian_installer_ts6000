@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import ipaddress
 import os
 import subprocess
@@ -62,7 +63,7 @@ def create_netplan(args, conf="/etc/netplan/99-default.yaml"):
                             - {{args["ip"]}}
                         routes:
                             - to: default
-                              via: {{args["dgw"]}}
+                              via: {{args["gw"]}}
                         nameservers:
                             addresses:
                             {%- for dns in args["dns"] %}
@@ -91,23 +92,20 @@ def apply_netplan(plan, conf="/etc/netplan/99-default.yaml"):
 
 def get_ip():
     while True:
-        ip = input("IPアドレス or dhcp (192.168.11.254/24 or dhcp)> ")
-        if ip.lower().strip() == "dhcp":
-            return "dhcp"
-        else:
-            try:
-                return ipaddress.ip_interface(ip)
-            except:
-                print(f"IPアドレスの形式が不正です: {ip}")
-
-
-def get_dgw():
-    while True:
-        dgw = input("デフォルトゲートウェイ (192.168.11.1)> ")
+        ip = input("IPアドレス(192.168.11.254/24)> ")
         try:
-            return ipaddress.ip_address(dgw)
+            return ipaddress.ip_interface(ip)
         except:
-            print(f"デフォルトゲートウェイの形式が不正です: {dgw}")
+            print(f"IPアドレスの形式が不正です: {ip}")
+
+
+def get_gw():
+    while True:
+        gw = input("デフォルトゲートウェイ (192.168.11.1)> ")
+        try:
+            return ipaddress.ip_address(gw)
+        except:
+            print(f"デフォルトゲートウェイの形式が不正です: {gw}")
 
 
 def get_dns():
@@ -126,8 +124,11 @@ def get_dns():
 
 
 def main():
-    wan_if = dgw = None
-    dns = []
+    parser = argparse.ArgumentParser(description="cacheサーバーネットワーク設定ツール")
+    parser.add_argument('--ip', default=None, help='IPアドレス ex) 192.168.22.253/24')
+    parser.add_argument('--gw', default=None, help='デフォルトゲートウェイ ex) 192.168.22.1')
+    parser.add_argument('--dns', default=None, nargs='*', help='DNSサーバー ex) 8.8.8.8 8.8.4.4')
+    args = parser.parse_args()
 
     if os.getuid() != 0:
         print("root で実行してください")
@@ -135,10 +136,9 @@ def main():
 
     net_ifs = [netif for netif in get_netifs()]
 
-    ip = get_ip()
-    if ip != "dhcp":
-        dgw = get_dgw()
-        dns = get_dns()
+    ip = get_ip() if args.ip is None else args.ip
+    gw = get_gw() if args.gw is None else args.gw
+    dns = get_dns() if args.dns is None else args.dns
 
     print("■パッケージ情報の更新中")
     proc_run(["apt", "update"])
@@ -148,10 +148,12 @@ def main():
     proc_run(["apt", "-y", "install", "ansible", "netplan.io", "python3-pip", "python3-passlib","curl"])
 
     print("■ネットワーク設定を変更中")
-    netplan = create_netplan({"net_ifs": net_ifs, "ip": ip, "dgw": dgw, "dns": dns})
+    netplan = create_netplan({"net_ifs": net_ifs, "ip": ip, "gw": gw, "dns": dns})
     # print(netplan)
     apply_netplan(netplan)
     print("■設定が完了しました")
+    print("\n\nインストール方法")
+    print("ansible-playbook -i ansible/inventory/local.yml ansible/setup.yml")
 
 
 if __name__ == "__main__":
