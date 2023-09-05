@@ -79,3 +79,9 @@
     path: /etc/zabbix/zabbix_server.conf
     regexp: ^DBPassword=
     line: DBPassword={{mariadb_zabbix_pass}}
+
+- name: enable zabbix-server service
+  ansible.builtin.systemd_service:
+    state: started
+    enabled: true
+    name: zabbix-server.service
