@@ -1,0 +1,10 @@
+#!/bin/sh
+MICONAPL='/usr/local/sbin/micon.py'
+
+if [ $1 == "halt" ] || [ $1 == "poweroff" ]; then
+  ${MICONAPL} "POWER_OFF"
+else
+  ${MICONAPL} "REBOOT"
+fi
+
+sleep 5

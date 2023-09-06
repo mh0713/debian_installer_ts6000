@@ -10,34 +10,26 @@
     mode: "{{ item.mode | default('0755') }}"
   with_items:
     - {
-        "src": miconapl/nas-apps_1.0ubuntu170_amd64.deb,
-        "dest": /tmp/nas-apps_1.0ubuntu170_amd64.deb,
+        "src": 70-micon.rules,
+        "dest": /etc/udev/rules.d/70-micon.rules,
       }
+    - { "src": update-lcd, "dest": /usr/local/sbin/update-lcd }
+    - { "src": micon-shutdown, "dest": /lib/systemd/system-shutdown/micon-shutdown }
+    - { "src": set-led, "dest": /usr/local/sbin/set-led }
+    - { "src": micon.py, "dest": /usr/local/sbin/micon.py }
     - {
-        "src": miconapl/70-buffalo-micon.rules,
-        "dest": /etc/udev/rules.d/70-buffalo-micon.rules,
-      }
-    - { "src": miconapl/update-lcd, "dest": /usr/local/bin/update-lcd }
-    - { "src": miconapl/disp-lcd, "dest": /usr/local/bin/disp-lcd }
-    - { "src": miconapl/set-led, "dest": /usr/local/bin/set-led }
-    - {
-        "src": miconapl/50-miconapl-lcd,
+        "src": 50-miconapl-lcd,
         "dest": /etc/networkd-dispatcher/routable.d/50-miconapl-lcd,
       }
     - {
-        "src": miconapl/50-miconapl-lcd,
+        "src": 50-miconapl-lcd,
         "dest": /etc/NetworkManager/dispatcher.d/50-miconapl-lcd,
       }
     - {
-        "src": miconapl/miconapl.service,
+        "src": miconapl.service,
         "dest": /etc/systemd/system/miconapl.service,
       }
   notify: restart miconapl
-
-- name: Install nas-apps
-  ansible.builtin.apt:
-    deb: /tmp/nas-apps_1.0ubuntu170_amd64.deb
-  notify: reload-miconapl
 
 - name: install packages
   ansible.builtin.apt:

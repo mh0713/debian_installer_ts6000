@@ -1,7 +1,0 @@
-#!/bin/sh
-MICONAPL='/usr/local/sbin/miconapl'
-
-${MICONAPL} -a lcd_set_buffer0 "$1"
-${MICONAPL} -a lcd_set_dispitem buffer0
-${MICONAPL} -a lcd_disp_buffer0
-sleep 5

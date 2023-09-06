@@ -8,9 +8,9 @@ LABEL="ts6000_rules"
 
 SUBSYSTEM=="tty", DEVPATH=="*/pnp0/*", ATTR{irq}=="7", SYMLINK+="micon_port"
 
-GOTO="buffalo_rules_end"
+GOTO="rules_end"
 
 ####################
 # end of rules
 ####################
-LABEL="buffalo_rules_end"
+LABEL="rules_end"
