@@ -52,6 +52,14 @@
   copy:
     src: hotswap.service
     dest: /etc/systemd/system/
+  notify: restart hotswap.service
+
+- name: enable hotswap.service
+  systemd:
+    name: hotswap.service
+    daemon-reload: yes
+    state: started
+    enabled: yes
 
 - name: create /etc/initramfs-tools/post-update.d/
   file:
@@ -64,10 +72,4 @@
     src: /usr/local/bin/update_boot.sh
     dest: /etc/initramfs-tools/post-update.d/update_boot
     state: link
-
-- name: enable hotswap.service
-  systemd:
-    name: hotswap.service
-    daemon-reload: yes
-    state: started
-    enabled: yes
+  notify: exec update_boot
