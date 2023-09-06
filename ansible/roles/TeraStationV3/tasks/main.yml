@@ -1,3 +1,39 @@
+- name: Copy miconapl files (micon V3)
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "{{ item.mode | default('0755') }}"
+  with_items:
+    - {
+        "src": miconapl/nas-apps_1.0ubuntu170_amd64.deb,
+        "dest": /tmp/nas-apps_1.0ubuntu170_amd64.deb,
+      }
+    - {
+        "src": miconapl/70-buffalo-micon.rules,
+        "dest": /etc/udev/rules.d/70-buffalo-micon.rules,
+      }
+    - { "src": miconapl/update-lcd, "dest": /usr/local/bin/update-lcd }
+    - { "src": miconapl/disp-lcd, "dest": /usr/local/bin/disp-lcd }
+    - { "src": miconapl/set-led, "dest": /usr/local/bin/set-led }
+    - {
+        "src": miconapl/50-miconapl-lcd,
+        "dest": /etc/networkd-dispatcher/routable.d/50-miconapl-lcd,
+      }
+    - {
+        "src": miconapl/50-miconapl-lcd,
+        "dest": /etc/NetworkManager/dispatcher.d/50-miconapl-lcd,
+      }
+    - {
+        "src": miconapl/miconapl.service,
+        "dest": /etc/systemd/system/miconapl.service,
+      }
+  notify: reload-miconapl
+
+- name: Install nas-apps
+  ansible.builtin.apt:
+    deb: /tmp/nas-apps_1.0ubuntu170_amd64.deb
+  notify: reload-miconapl
+
 - name: install packages
   ansible.builtin.apt:
     pkg:
@@ -11,18 +47,10 @@
   with_items:
     - { "src":hotswap_enable.sh, "dest":/usr/local/bin/ }
     - { "src":update_boot.sh, "dest":/usr/local/bin/ }
-    - { "src":micon_scripts/libmicon.py, "dest":/usr/local/bin/micon_scripts/ }
-    - { "src":micon_scripts/micon_shutdown.py, "dest":/usr/local/bin/micon_scripts/ }
-    - { "src":micon_scripts/micon_startup.py, "dest":/usr/local/bin/micon_scripts/ }
 
 - name: copy hotswap.service
   copy:
     src: hotswap.service
-    dest: /etc/systemd/system/
-
-- name: copy micon_boot.service
-  copy:
-    src: micon_scripts/micon_boot.service
     dest: /etc/systemd/system/
 
 - name: create /etc/initramfs-tools/post-update.d/
@@ -37,21 +65,9 @@
     dest: /etc/initramfs-tools/post-update.d/update_boot
     state: link
 
-- name: create link to micon_shutdown
-  file:
-    src: /usr/local/bin/micon_scripts/micon_shutdown.py
-    dest: /lib/systemd/system-shutdown/micon_shutdown
-    state: link
-
 - name: enable hotswap.service
   systemd:
     name: hotswap.service
     daemon-reload: yes
-    state: started
-    enabled: yes
-
-- name: enable micon_boot.service
-  systemd:
-    name: micon_boot.service
     state: started
     enabled: yes

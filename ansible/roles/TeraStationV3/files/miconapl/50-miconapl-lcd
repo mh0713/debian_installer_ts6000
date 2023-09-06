@@ -1,0 +1,3 @@
+#!/bin/sh
+/usr/local/bin/update-lcd
+exit 0
