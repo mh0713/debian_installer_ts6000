@@ -3,13 +3,13 @@
   gather_facts: yes
   become: yes
   roles:
-    # - startup
-    # - cockpit
-    # - mariadb
-    # - zabbix-server
-    # - dns
-    # - capture-packet
-    # - fluent-bit
-    # - nginx
+    - startup
+    - cockpit
+    - mariadb
+    - zabbix-server
+    - dns
+    - capture-packet
+    - fluent-bit
+    - nginx
     - role: TeraStationV3
       when: ansible_product_name == "TeraStation"
