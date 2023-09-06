@@ -47,17 +47,17 @@ def shutdownV3(port):
 	test.port.close()
 
 
-for port in ["/dev/ttyS1"]:
-	try:
-		test = libmicon.micon_api(port)
-	except:
-		continue
-	micon_version = test.send_read_cmd(0x83)
-	if micon_version:
-		test.port.close()
-		shutdownV2(port)
-		quit()
-	test.port.close()
+# for port in ["/dev/ttyS1"]:
+# 	try:
+# 		test = libmicon.micon_api(port)
+# 	except:
+# 		continue
+# 	micon_version = test.send_read_cmd(0x83)
+# 	if micon_version:
+# 		test.port.close()
+# 		shutdownV2(port)
+# 		quit()
+# 	test.port.close()
 
 
 for port in ["/dev/ttyS0"]:
