@@ -12,4 +12,4 @@
     - fluent-bit
     - nginx
     - role: TeraStationV3
-      when: ansible_facts.board_name == 'TS6000'
+      when: ansible_product_name == "TeraStation"
