@@ -1,0 +1,18 @@
+#!/bin/bash
+LED_TARGET=$1
+LED_MODE=$2
+BLINK_RATE=$3
+
+MICONAPL='/usr/local/sbin/micon.py'
+
+for i in {1..10}; do
+    ${MICONAPL} "VER_GET"
+    if [ $? -eq 0 ]; then
+        break
+    fi
+    sleep 1
+done
+
+${MICONAPL} "LED_${LED_MODE} ${LED_TARGET} {BLINK_RATE}"
+
+sleep 2

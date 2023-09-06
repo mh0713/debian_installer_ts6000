@@ -1,0 +1,19 @@
+[Unit]
+Description=Miconapl daemon
+Before=networking.service
+
+[Service]
+Type=forking
+ExecStart=/usr/local/sbin/update-lcd
+# Power LED
+ExecStartPost=/usr/local/sbin/set-led 0 ON
+# LCD backright Green
+ExecStartPost=/usr/local/sbin/set-led 4 ON
+# LCD backright Blue
+ExecStartPost=/usr/local/sbin/set-led 5 ON
+ExecStop=/usr/local/sbin/set-led 0 BLINK
+Restart=always
+KillMode=none
+
+[Install]
+WantedBy=multi-user.target

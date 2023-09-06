@@ -1,0 +1,17 @@
+#!/bin/sh
+MICONAPL='/usr/local/sbin/micon.py'
+
+for i in {1..10}; do
+    ${MICONAPL} "VER_GET"
+    if [ $? -eq 0 ]; then
+        break
+    fi
+    sleep 1
+done
+
+IP=$(ip a show dev br0 | grep 'inet ' | awk '{print $2}' | head -n 1)
+
+${MICONAPL} "LCD_PUTS 0 $(hostname)"
+${MICONAPL} "LCD_PUTS 1 ${IP%/*}"
+
+sleep 2

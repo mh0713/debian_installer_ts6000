@@ -1,3 +1,8 @@
+- name: restart miconapl
+  ansible.builtin.service:
+    name: miconapl.service
+    state: restarted
+
 - name: restart hotswap.service
   ansible.builtin.service:
     name: hotswap.service
