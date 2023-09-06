@@ -32,7 +32,7 @@
         "src": miconapl/miconapl.service,
         "dest": /etc/systemd/system/miconapl.service,
       }
-  notify: reload-miconapl
+  notify: restart miconapl
 
 - name: Install nas-apps
   ansible.builtin.apt:
