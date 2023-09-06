@@ -1,2 +1,3 @@
 ansible/inventory/*
 ansible/group_vars/*
+tmp/
