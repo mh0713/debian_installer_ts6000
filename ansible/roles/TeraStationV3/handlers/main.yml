@@ -1,0 +1,8 @@
+- name: restart hotswap.service
+  ansible.builtin.service:
+    name: hotswap.service
+    state: restarted
+
+- name: exec update_boot
+  ansible.builtin.shell: /etc/initramfs-tools/post-update.d/update_boot
+  

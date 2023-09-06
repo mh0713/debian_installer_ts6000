@@ -4,7 +4,6 @@
   become: yes
   roles:
     - startup
-    - user
     - cockpit
     - mariadb
     - zabbix-server
@@ -12,6 +11,5 @@
     - capture-packet
     - fluent-bit
     - nginx
-#    - dns-query-count
-#    - remote-ssh
-
+    - role: TeraStationV3
+      when: ansible_facts.board_name == 'TS6000'
