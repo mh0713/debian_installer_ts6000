@@ -23,6 +23,3 @@ mariadb_zabbix_user: zabbix
 mariadb_zabbix_pass: p@ssw0rd
 
 mariadb_zabbix_db: zabbix
-
-local_user_name: admin
-local_user_pass: 8uhbgt5rdx
