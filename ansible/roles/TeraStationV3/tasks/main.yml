@@ -1,3 +1,8 @@
+- name: install packages
+  ansible.builtin.apt:
+    pkg:
+      - python3-serial
+
 - name: copy scripts
   copy:
     src: "{{ item.src }}"
