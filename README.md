@@ -8,3 +8,7 @@ TS6000シリーズ
 
 Debian 12 (bookworm)
 
+## インストール仕様
+
+* IP: DHCP
+* アカウント: user / password
