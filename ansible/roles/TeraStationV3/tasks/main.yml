@@ -1,3 +1,8 @@
+- name: Install packages
+  ansible.builtin.apt:
+    pkg:
+      - networkd-dispatcher
+
 - name: Copy miconapl files (micon V3)
   ansible.builtin.copy:
     src: "{{ item.src }}"
