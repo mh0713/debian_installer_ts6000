@@ -4,7 +4,7 @@ set -o errexit
 echo "start late_cmds.sh"
 
 SRC=/cdrom/src
-DST=/target/
+TARGET=/target/
 
 while getopts s:t: OPT
 do
