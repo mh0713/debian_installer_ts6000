@@ -27,7 +27,7 @@ def create_netplan(args, conf="/etc/netplan/99-default.yaml"):
     if args["ip"] == "dhcp":
         netplan_tpl = """
             network:
-                renderer: networkd
+                renderer: NetworkManager
                 version: 2
                 ethernets:
                 {%- for net_if in args["net_ifs"] %}
@@ -45,7 +45,7 @@ def create_netplan(args, conf="/etc/netplan/99-default.yaml"):
     else:
         netplan_tpl = """
             network:
-                renderer: networkd
+                renderer: NetworkManager
                 version: 2
                 ethernets:
                 {%- for net_if in args["net_ifs"] %}
