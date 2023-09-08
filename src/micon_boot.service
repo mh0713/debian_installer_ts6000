@@ -5,7 +5,10 @@ After=network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/bin/micon_scripts/micon_startup.py
+ExecStart=/usr/local/sbin/update-lcd.sh
+ExecStartPost=/usr/local/sbin/set-led.sh 0 ON
+ExecStartPost=/usr/local/sbin/set-led.sh 4 ON
+ExecStartPost=/usr/local/sbin/set-led.sh 5 ON
 
 [Install]
 WantedBy=multi-user.target

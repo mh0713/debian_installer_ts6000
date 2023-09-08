@@ -4,7 +4,7 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/usr/local/bin/hotswap_enable.sh
+ExecStart=/usr/local/sbin/hotswap_enable.sh
 
 [Install]
 WantedBy=multi-user.target
