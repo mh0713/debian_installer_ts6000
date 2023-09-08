@@ -7,7 +7,7 @@ cur_dir=$(cd $(dirname $0); pwd)
 src_dir="${cur_dir}"/src
 orig_iso="${cur_dir}"/base_iso/debian-12.1.0-amd64-netinst.iso
 new_files="${cur_dir}"/tmp/
-new_iso="${new_files}"/bookworm-installer-ts6000.iso
+new_iso="${new_files}"/installer-ts6000-bookworm-$(date +'%Y%m%d-%H%M%S').iso
 mbr_template=isohdpfx.bin
 
 cd "${cur_dir}"
@@ -28,25 +28,11 @@ xorriso -osirrox on -indev "$orig_iso" -extract / "$new_files"
 chmod +w -R "${new_files}"/install.amd/
 gunzip "${new_files}"/install.amd/initrd.gz
 
-pushd "${src_dir}"
-echo "preseed.cfg" | cpio -H newc -o -A -F "${new_files}"/install.amd/initrd
-echo "bin/early_cmds.sh" | cpio -H newc -o -A -F "${new_files}"/install.amd/initrd
-echo "bin/micro-evtd" | cpio -H newc -o -A -F "${new_files}"/install.amd/initrd
+pushd "${src_dir}/initrd/"
+find . -type f | cpio -H newc -o -A -F "${new_files}"/install.amd/initrd
 popd
 pigz "${new_files}"/install.amd/initrd
 chmod -w -R "${new_files}"/install.amd/
-
-# cfg="${new_files}/isolinux/isolinux.cfg"
-# chmod +w ${cfg}
-# echo "ui vesamenu.c32" 				 > "$cfg"
-# echo "TIMEOUT 10"				 >> "$cfg"
-# echo "label debian-installer"			 >> "$cfg"
-# echo "      menu label Debian $distro Installer" >> "$cfg"
-# echo "      menu default"			 >> "$cfg"
-# echo "      kernel /linux"			 >> "$cfg"
-# echo "      initrd /initrd.xz"			 >> "$cfg"
-# echo "Modify message"				 >> "$cfg"
-# chmod -w ${cfg}
 
 sudo cp "${src_dir}"/grub.cfg "${new_files}"/boot/grub/
 
