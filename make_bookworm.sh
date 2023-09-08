@@ -7,7 +7,7 @@ cur_dir=$(cd $(dirname $0); pwd)
 src_dir="${cur_dir}"/src
 orig_iso="${cur_dir}"/base_iso/debian-12.1.0-amd64-netinst.iso
 new_files="${cur_dir}"/tmp/
-new_iso="${new_files}"/bookworm-installer-ts6000.iso
+new_iso="${new_files}"/installer-ts6000-bookworm-$(date +'%Y%m%d-%H%M%S').iso
 mbr_template=isohdpfx.bin
 
 cd "${cur_dir}"

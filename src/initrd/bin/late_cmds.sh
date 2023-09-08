@@ -33,6 +33,8 @@ echo gpio-ich >> ${TARGET}/etc/modules
 echo pinctrl-dnv >> ${TARGET}/etc/modules
 mkdir -p ${TARGET}/etc/initramfs/post-update.d/
 
+cp ${SRC}/initrd/bin/in_target.sh ${TARGET}/tmp/
+
 echo "end late_cmds.sh"
 
 exit 0
