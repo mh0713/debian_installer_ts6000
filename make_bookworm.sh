@@ -3,62 +3,63 @@
 set -o errexit
 
 # 変数定義
-cur_dir=$(cd $(dirname $0); pwd)
-src_dir="${cur_dir}"/src
-orig_iso="${cur_dir}"/base_iso/debian-12.1.0-amd64-netinst.iso
-new_files="${cur_dir}"/tmp/
-new_iso="${new_files}"/installer-ts6000-bookworm-$(date +'%Y%m%d-%H%M%S').iso
-mbr_template=isohdpfx.bin
+CUR_DIR=$(cd $(dirname $0); pwd)
+SRC_DIR="${CUR_DIR}"/src
+ORIG_ISO="${CUR_DIR}"/base_iso/debian-12.1.0-amd64-netinst.iso
+NEW_FILES="${CUR_DIR}"/tmp/
+VER=$(git tag | sort | tail -n 1)
+NEW_ISO="${NEW_FILES}"/installer-ts6000-bookworm-$(VER).iso
+MBR_TEMPLATE=isohdpfx.bin
 
-cd "${cur_dir}"
+
+cd "${CUR_DIR}"
 
 # 作業ディレクトリのクリーンアップ＆作成
-sudo rm -rf ${new_files}
-mkdir -p ${new_files}
-
+sudo rm -rf ${NEW_FILES}
+mkdir -p ${NEW_FILES}
 
 # 必要なツールのインストール
 sudo apt update
 sudo apt -y install cpio syslinux isolinux xorriso mkisofs syslinux-utils pigz
 
 #Extracting the Initrd from an ISO Image
-xorriso -osirrox on -indev "$orig_iso" -extract / "$new_files"
+xorriso -osirrox on -indev "$ORIG_ISO" -extract / "$NEW_FILES"
 
 #Adding a Preseed File to the Initrd
-chmod +w -R "${new_files}"/install.amd/
-gunzip "${new_files}"/install.amd/initrd.gz
+chmod +w -R "${NEW_FILES}"/install.amd/
+gunzip "${NEW_FILES}"/install.amd/initrd.gz
 
-pushd "${src_dir}/initrd/"
-find . -type f | cpio -H newc -o -A -F "${new_files}"/install.amd/initrd
+pushd "${SRC_DIR}/initrd/"
+find . -type f | cpio -H newc -o -A -F "${NEW_FILES}"/install.amd/initrd
 popd
-pigz "${new_files}"/install.amd/initrd
-chmod -w -R "${new_files}"/install.amd/
+pigz "${NEW_FILES}"/install.amd/initrd
+chmod -w -R "${NEW_FILES}"/install.amd/
 
-sudo cp "${src_dir}"/grub.cfg "${new_files}"/boot/grub/
+sudo cp "${SRC_DIR}"/grub.cfg "${NEW_FILES}"/boot/grub/
 
-sudo mkdir "${new_files}"/src/
-sudo cp -r "${src_dir}"/* "${new_files}"/src/
+sudo mkdir "${NEW_FILES}"/src/
+sudo cp -r "${SRC_DIR}"/* "${NEW_FILES}"/src/
 
 #Regenerating md5sum.txt
-cd "${new_files}"
+cd "${NEW_FILES}"
 chmod +w md5sum.txt
 
 find -follow -type f ! -name md5sum.txt -print0 | xargs -0 md5sum > md5sum.txt
 chmod -w md5sum.txt
-cd "${cur_dir}"
+cd "${CUR_DIR}"
 
-dd if="${orig_iso}" bs=1 count=432 of="${mbr_template}"
+dd if="${ORIG_ISO}" bs=1 count=432 of="${MBR_TEMPLATE}"
 
 #ブータブルISOの作成
 sudo xorriso -as mkisofs \
    -r -V 'TS6000 bookworm installer n' \
-   -o "${new_iso}" \
+   -o "${NEW_ISO}" \
    -J -J -joliet-long -cache-inodes \
-   -isohybrid-mbr "${mbr_template}" \
+   -isohybrid-mbr "${MBR_TEMPLATE}" \
    -b isolinux/isolinux.bin \
    -c isolinux/boot.cat \
    -boot-load-size 4 -boot-info-table -no-emul-boot \
    -eltorito-alt-boot \
    -e boot/grub/efi.img \
    -no-emul-boot -isohybrid-gpt-basdat -isohybrid-apm-hfsplus \
-   "${new_files}"
+   "${NEW_FILES}"
