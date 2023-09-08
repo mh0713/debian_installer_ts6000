@@ -1,4 +1,5 @@
 #!/bin/bash -x
+set -o errexit
 
 echo "start in_target.sh"
 
@@ -12,9 +13,9 @@ do
 done
 
 echo "create symlinks"
-ln -s /usr/local/sbin/update_boot.sh /etc/initramfs/post-update.d/update_boot
-ln -s /usr/local/sbin/micon_shutdown.sh /lib/systemd/system-shutdown/micon_shutdown
-ln -s /usr/local/sbin/update-lcd /etc/NetworkManager/dispatcher.d/50-miconapl-lcd
+ln -sf /usr/local/sbin/update_boot.sh /etc/initramfs/post-update.d/update_boot
+ln -sf /usr/local/sbin/micon_shutdown.sh /lib/systemd/system-shutdown/micon_shutdown
+ln -sf /usr/local/sbin/update-lcd /etc/NetworkManager/dispatcher.d/50-miconapl-lcd
 systemctl enable hotswap.service
 systemctl enable micon_boot.service
 
