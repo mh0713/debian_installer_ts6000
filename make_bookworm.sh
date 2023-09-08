@@ -8,7 +8,7 @@ SRC_DIR="${CUR_DIR}"/src
 ORIG_ISO="${CUR_DIR}"/base_iso/debian-12.1.0-amd64-netinst.iso
 NEW_FILES="${CUR_DIR}"/tmp/
 VER=$(git tag | sort | tail -n 1)
-NEW_ISO="${NEW_FILES}"/installer-ts6000-bookworm-$(VER).iso
+NEW_ISO="${NEW_FILES}"/installer-ts6000-bookworm-${VER}.iso
 MBR_TEMPLATE=isohdpfx.bin
 
 
