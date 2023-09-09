@@ -1,20 +1,29 @@
-#!/usr/bin/env python3
-
-import argparse
 import glob
-import ipaddress
 import os
+import ipaddress
 import subprocess
 import sys
 import textwrap
 
+def _proc_run(cmd):
+    '''
+    :param cmd: str 実行するコマンド.
+    :rtype: generator
+    :return: 標準出力 (行毎).
+    '''
+    proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+    while True:
+        line = proc.stdout.readline()
+        if line:
+            yield line
+
+        if not line and proc.poll() is not None:
+            break
 
 def proc_run(cmd):
-    proc = subprocess.run(cmd, capture_output=True)
-    if proc.returncode != 0:
-        print(proc.stderr.decode("utf-8"))
-        sys.exit(1)
-
+    for line in _proc_run(cmd):
+        sys.stdout.write(line.decode('utf-8'))
 
 def get_netifs():
     for entry in os.listdir("/sys/class/net"):
@@ -82,6 +91,7 @@ def create_netplan(args, conf="/etc/netplan/99-default.yaml"):
     try:
         with open(conf, "w") as f:
             f.write(netplan)
+        os.chmod(conf, 0o600)
     except Exception as e:
         print("ネットワーク設定の保存に失敗しました")
         print(e)
@@ -91,7 +101,7 @@ def create_netplan(args, conf="/etc/netplan/99-default.yaml"):
 
 
 def apply_netplan(plan, conf="/etc/netplan/99-default.yaml"):
-    proc_run(["netplan", "apply"])
+    proc_run("netplan apply")
 
 
 def get_ip():
@@ -125,41 +135,3 @@ def get_dns():
         except Exception as e:
             print(e)
             print(f"Invalid DNS server: {d}")
-
-
-def main():
-    parser = argparse.ArgumentParser(description="Network Configuration Tool")
-    parser.add_argument('--ip', default=None, help='IP address ex) 192.168.22.253/24')
-    parser.add_argument('--gw', default=None, help='default gateway ex) 192.168.22.1')
-    parser.add_argument('--dns', default=None, nargs='*', help='DNS server ex) 8.8.8.8 8.8.4.4')
-    args = parser.parse_args()
-
-    if os.getuid() != 0:
-        print("run as root")
-        sys.exit(1)
-
-    net_ifs = [netif for netif in get_netifs()]
-
-    ip = get_ip() if args.ip is None else args.ip
-    gw = get_gw() if args.gw is None else args.gw
-    dns = get_dns() if args.dns is None else args.dns
-
-    print("* Updating apt database")
-    proc_run(["apt", "update"])
-    print("* Upgrading apt packages")
-    proc_run(["apt", "-y", "upgrade"])
-    print("* Installing required packages")
-    proc_run(["apt", "-y", "install", "ansible", "netplan.io", "python3-pip", "python3-passlib","curl"])
-
-    print("* Deleting unnecessary files")
-    delete_system_connection()
-    print("* Genarating netplan configuration")
-    netplan = create_netplan({"net_ifs": net_ifs, "ip": ip, "gw": gw, "dns": dns})
-    # print(netplan)
-    apply_netplan(netplan)
-    print("* Configuration applied")
-    print("\n\nInstallation command")
-    print("ansible-playbook -i ansible/inventory/local.yml ansible/setup.yml")
-
-if __name__ == "__main__":
-    main()
