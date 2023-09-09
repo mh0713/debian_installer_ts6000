@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import glob
 import ipaddress
 import os
 import subprocess
@@ -20,6 +21,9 @@ def get_netifs():
         if entry.startswith("en") or entry.startswith("eth"):
             yield entry
 
+def delete_system_connection():
+    for filename in  glob.glob("/etc/NetworkManager/system-connections/*"):
+        os.remove(filename)
 
 def create_netplan(args, conf="/etc/netplan/99-default.yaml"):
     from jinja2 import Template
@@ -92,25 +96,25 @@ def apply_netplan(plan, conf="/etc/netplan/99-default.yaml"):
 
 def get_ip():
     while True:
-        ip = input("IPアドレス(192.168.11.254/24)> ")
+        ip = input("IP address (192.168.11.254/24)> ")
         try:
             return ipaddress.ip_interface(ip)
         except:
-            print(f"IPアドレスの形式が不正です: {ip}")
+            print(f"Invalid IP address format: {ip}")
 
 
 def get_gw():
     while True:
-        gw = input("デフォルトゲートウェイ (192.168.11.1)> ")
+        gw = input("default gateway (192.168.11.1)> ")
         try:
             return ipaddress.ip_address(gw)
         except:
-            print(f"デフォルトゲートウェイの形式が不正です: {gw}")
+            print(f"Invalid gateway format: {gw}")
 
 
 def get_dns():
     while True:
-        dns = input("DNSサーバー(192.168.11.252 192.168.11.253)> ")
+        dns = input("DNS server(192.168.11.252 192.168.11.253)> ")
         dns = dns.split()
         try:
             ret_dns = []
@@ -120,18 +124,18 @@ def get_dns():
 
         except Exception as e:
             print(e)
-            print(f"DNSの形式が不正です: {d}")
+            print(f"Invalid DNS server: {d}")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="cacheサーバーネットワーク設定ツール")
-    parser.add_argument('--ip', default=None, help='IPアドレス ex) 192.168.22.253/24')
-    parser.add_argument('--gw', default=None, help='デフォルトゲートウェイ ex) 192.168.22.1')
-    parser.add_argument('--dns', default=None, nargs='*', help='DNSサーバー ex) 8.8.8.8 8.8.4.4')
+    parser = argparse.ArgumentParser(description="Network Configuration Tool")
+    parser.add_argument('--ip', default=None, help='IP address ex) 192.168.22.253/24')
+    parser.add_argument('--gw', default=None, help='default gateway ex) 192.168.22.1')
+    parser.add_argument('--dns', default=None, nargs='*', help='DNS server ex) 8.8.8.8 8.8.4.4')
     args = parser.parse_args()
 
     if os.getuid() != 0:
-        print("root で実行してください")
+        print("run as root")
         sys.exit(1)
 
     net_ifs = [netif for netif in get_netifs()]
@@ -140,21 +144,22 @@ def main():
     gw = get_gw() if args.gw is None else args.gw
     dns = get_dns() if args.dns is None else args.dns
 
-    print("■パッケージ情報の更新中")
+    print("* Updating apt database")
     proc_run(["apt", "update"])
-    print("■パッケージのアップデート中")
+    print("* Upgrading apt packages")
     proc_run(["apt", "-y", "upgrade"])
-    print("■必要なパッケージをインストール中")
+    print("* Installing required packages")
     proc_run(["apt", "-y", "install", "ansible", "netplan.io", "python3-pip", "python3-passlib","curl"])
 
-    print("■ネットワーク設定を変更中")
+    print("* Deleting unnecessary files")
+    delete_system_connection()
+    print("* Genarating netplan configuration")
     netplan = create_netplan({"net_ifs": net_ifs, "ip": ip, "gw": gw, "dns": dns})
     # print(netplan)
     apply_netplan(netplan)
-    print("■設定が完了しました")
-    print("\n\nインストール方法")
+    print("* Configuration applied")
+    print("\n\nInstallation command")
     print("ansible-playbook -i ansible/inventory/local.yml ansible/setup.yml")
-
 
 if __name__ == "__main__":
     main()
