@@ -1,25 +1,38 @@
-#!/usr/bin/env python3
-
-import argparse
-import ipaddress
+import glob
 import os
+import ipaddress
 import subprocess
 import sys
 import textwrap
 
+def _proc_run(cmd):
+    '''
+    :param cmd: str 実行するコマンド.
+    :rtype: generator
+    :return: 標準出力 (行毎).
+    '''
+    proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+    while True:
+        line = proc.stdout.readline()
+        if line:
+            yield line
+
+        if not line and proc.poll() is not None:
+            break
 
 def proc_run(cmd):
-    proc = subprocess.run(cmd, capture_output=True)
-    if proc.returncode != 0:
-        print(proc.stderr.decode("utf-8"))
-        sys.exit(1)
-
+    for line in _proc_run(cmd):
+        sys.stdout.write(line.decode('utf-8'))
 
 def get_netifs():
     for entry in os.listdir("/sys/class/net"):
         if entry.startswith("en") or entry.startswith("eth"):
             yield entry
 
+def delete_system_connection():
+    for filename in  glob.glob("/etc/NetworkManager/system-connections/*"):
+        os.remove(filename)
 
 def create_netplan(args, conf="/etc/netplan/99-default.yaml"):
     from jinja2 import Template
@@ -27,7 +40,7 @@ def create_netplan(args, conf="/etc/netplan/99-default.yaml"):
     if args["ip"] == "dhcp":
         netplan_tpl = """
             network:
-                renderer: networkd
+                renderer: NetworkManager
                 version: 2
                 ethernets:
                 {%- for net_if in args["net_ifs"] %}
@@ -45,7 +58,7 @@ def create_netplan(args, conf="/etc/netplan/99-default.yaml"):
     else:
         netplan_tpl = """
             network:
-                renderer: networkd
+                renderer: NetworkManager
                 version: 2
                 ethernets:
                 {%- for net_if in args["net_ifs"] %}
@@ -78,6 +91,7 @@ def create_netplan(args, conf="/etc/netplan/99-default.yaml"):
     try:
         with open(conf, "w") as f:
             f.write(netplan)
+        os.chmod(conf, 0o600)
     except Exception as e:
         print("ネットワーク設定の保存に失敗しました")
         print(e)
@@ -87,30 +101,30 @@ def create_netplan(args, conf="/etc/netplan/99-default.yaml"):
 
 
 def apply_netplan(plan, conf="/etc/netplan/99-default.yaml"):
-    proc_run(["netplan", "apply"])
+    proc_run("netplan apply")
 
 
 def get_ip():
     while True:
-        ip = input("IPアドレス(192.168.11.254/24)> ")
+        ip = input("IP address (192.168.11.254/24)> ")
         try:
             return ipaddress.ip_interface(ip)
         except:
-            print(f"IPアドレスの形式が不正です: {ip}")
+            print(f"Invalid IP address format: {ip}")
 
 
 def get_gw():
     while True:
-        gw = input("デフォルトゲートウェイ (192.168.11.1)> ")
+        gw = input("default gateway (192.168.11.1)> ")
         try:
             return ipaddress.ip_address(gw)
         except:
-            print(f"デフォルトゲートウェイの形式が不正です: {gw}")
+            print(f"Invalid gateway format: {gw}")
 
 
 def get_dns():
     while True:
-        dns = input("DNSサーバー(192.168.11.252 192.168.11.253)> ")
+        dns = input("DNS server(192.168.11.252 192.168.11.253)> ")
         dns = dns.split()
         try:
             ret_dns = []
@@ -120,41 +134,4 @@ def get_dns():
 
         except Exception as e:
             print(e)
-            print(f"DNSの形式が不正です: {d}")
-
-
-def main():
-    parser = argparse.ArgumentParser(description="cacheサーバーネットワーク設定ツール")
-    parser.add_argument('--ip', default=None, help='IPアドレス ex) 192.168.22.253/24')
-    parser.add_argument('--gw', default=None, help='デフォルトゲートウェイ ex) 192.168.22.1')
-    parser.add_argument('--dns', default=None, nargs='*', help='DNSサーバー ex) 8.8.8.8 8.8.4.4')
-    args = parser.parse_args()
-
-    if os.getuid() != 0:
-        print("root で実行してください")
-        sys.exit(1)
-
-    net_ifs = [netif for netif in get_netifs()]
-
-    ip = get_ip() if args.ip is None else args.ip
-    gw = get_gw() if args.gw is None else args.gw
-    dns = get_dns() if args.dns is None else args.dns
-
-    print("■パッケージ情報の更新中")
-    proc_run(["apt", "update"])
-    print("■パッケージのアップデート中")
-    proc_run(["apt", "-y", "upgrade"])
-    print("■必要なパッケージをインストール中")
-    proc_run(["apt", "-y", "install", "ansible", "netplan.io", "python3-pip", "python3-passlib","curl"])
-
-    print("■ネットワーク設定を変更中")
-    netplan = create_netplan({"net_ifs": net_ifs, "ip": ip, "gw": gw, "dns": dns})
-    # print(netplan)
-    apply_netplan(netplan)
-    print("■設定が完了しました")
-    print("\n\nインストール方法")
-    print("ansible-playbook -i ansible/inventory/local.yml ansible/setup.yml")
-
-
-if __name__ == "__main__":
-    main()
+            print(f"Invalid DNS server: {d}")
