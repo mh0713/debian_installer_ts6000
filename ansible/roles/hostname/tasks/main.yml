@@ -1,0 +1,11 @@
+- name: Set a hostname
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname_short }}"
+  notify:
+    update-lcd
+
+- name: edit /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '^127.0.1.1'
+    line: '127.0.1.1 {{ inventory_hostname }} {{ inventory_hostname_short }}'

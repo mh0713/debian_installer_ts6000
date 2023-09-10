@@ -1,0 +1,4 @@
+- name: update-lcd
+  ansible.builtin.shell:
+    cmd: "/usr/local/sbin/update-lcd.sh"
+  when: ansible_product_name == "TeraStation"
