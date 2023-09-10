@@ -10,3 +10,17 @@
 * IPアドレス変更などの管理のためのWEB管理画面としてcockpitを搭載
 * リモート管理用にtailscaleを搭載
 
+## 使用方法
+
+```
+$ ssh-copy-id user@<IPアドレス>
+$ ssh user@<IPアドレス>
+$ ./install.py \
+  --ip <IPアドレス>/<ネットマスク> \
+  --gw <デフォルトゲートウェイ> \
+  --dns <DNSサーバー> \
+  --hostname <FQDN(ホスト名でも可)>  
+```
+
+## TODO
+* MySQL パーティショニング処理追加

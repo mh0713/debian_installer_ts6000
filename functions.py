@@ -1,9 +1,11 @@
 import glob
-import os
 import ipaddress
+import os
 import subprocess
 import sys
 import textwrap
+
+from jinja2 import Template
 
 
 def _proc_run(cmd):
@@ -42,8 +44,6 @@ def delete_system_connection():
 
 
 def create_netplan(args, conf="/etc/netplan/99-default.yaml"):
-    from jinja2 import Template
-
     if args["ip"] == "dhcp":
         netplan_tpl = """
             network:
@@ -100,7 +100,7 @@ def create_netplan(args, conf="/etc/netplan/99-default.yaml"):
             f.write(netplan)
         os.chmod(conf, 0o600)
     except Exception as e:
-        print("ネットワーク設定の保存に失敗しました")
+        print("failed to save netplan configuration")
         print(e)
         return False
 
@@ -142,3 +142,35 @@ def get_dns():
         except Exception as e:
             print(e)
             print(f"Invalid DNS server: {d}")
+
+
+def get_hostname():
+    while True:
+        hostname = input("hostname (proxy.example.org)> ")
+
+        return hostname
+
+
+def create_inventory(args, conf="./ansible/inventory/local.yml"):
+    inventory_tpl = """
+        all:
+            hosts:
+                localhost:
+                    ansible_connection: local
+                    ansible_host: localhost
+                    hostname: {{ args["hostname"] }}
+    """
+
+    inventory_tpl = textwrap.dedent(inventory_tpl)[1:-1]
+
+    netplan = Template(inventory_tpl).render(args=args)
+
+    try:
+        with open(conf, "w") as f:
+            f.write(netplan)
+    except Exception as e:
+        print("failed to save ansible inventory")
+        print(e)
+        return False
+
+    return True
