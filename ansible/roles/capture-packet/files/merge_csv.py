@@ -9,23 +9,21 @@ import sys
 import pandas as pd
 
 output_columns = [
-    'hostname',
-    'logdatetime',
-    'application_category_name',
-    'application_name',
-    'requested_server_name',
-    'bidirectional_bytes',
-    'src2dst_bytes',
-    'dst2src_bytes',
-    'src_ip',
-    'dst_ip'
+    "hostname",
+    "logdatetime",
+    "application_category_name",
+    "application_name",
+    "requested_server_name",
+    "bidirectional_bytes",
+    "src2dst_bytes",
+    "dst2src_bytes",
+    "src_ip",
+    "dst_ip",
 ]
 
 parser = argparse.ArgumentParser(
-          prog="pcap2csv",
-          description="PCAP parser",
-          add_help=True
-          )
+    prog="pcap2csv", description="PCAP parser", add_help=True
+)
 
 parser.add_argument("-i", "--input", default="csv_temp/")
 parser.add_argument("-o", "--output", default="csv_merged/")
@@ -46,7 +44,9 @@ for fpath in glob.glob("%s/%s*.csv.gz" % (input_dir, prefix)):
     # ex) proxy-dev-20230124-090001.csv.gz
     # ホスト名は - を含む可変長文字列
 
-    m = re.match(r'(?P<hostname>\S+)-(?P<logdate>\d{8})-(?P<logtime>\d{6})\.pcap\.csv\.gz', fname) 
+    m = re.match(
+        r"(?P<hostname>\S+)-(?P<logdate>\d{8})-(?P<logtime>\d{6})\.pcap\.csv\.gz", fname
+    )
 
     hostname = m.group("hostname")
     logdatetime = "%s/%s/%s %s:%s" % (
@@ -54,17 +54,25 @@ for fpath in glob.glob("%s/%s*.csv.gz" % (input_dir, prefix)):
         m.group("logdate")[4:6],
         m.group("logdate")[6:8],
         m.group("logtime")[0:2],
-        m.group("logtime")[2:4]
+        m.group("logtime")[2:4],
     )
     # debug: print(hostname, logdatetime)
 
-    df = pd.read_csv(fpath, compression="gzip", header=0, dtype='object')
-    df['hostname'] = hostname
-    df['logdatetime'] = logdatetime
+    df = pd.read_csv(fpath, compression="gzip", header=0, dtype="object")
+    df["hostname"] = hostname
+    df["logdatetime"] = logdatetime
     # debug: print( df_temp )
 
     if first:
-        df.to_csv("%s/%s.csv" % (output_dir, prefix), index=False, columns=output_columns)
-        first=False
+        df.to_csv(
+            "%s/%s.csv" % (output_dir, prefix), index=False, columns=output_columns
+        )
+        first = False
     else:
-        df.to_csv("%s/%s.csv" % (output_dir, prefix), mode="a", index=False, header=False, columns=output_columns)
+        df.to_csv(
+            "%s/%s.csv" % (output_dir, prefix),
+            mode="a",
+            index=False,
+            header=False,
+            columns=output_columns,
+        )

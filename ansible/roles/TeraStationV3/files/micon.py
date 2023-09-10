@@ -8,14 +8,21 @@ import sys
 
 retry_count = 3
 
+
 class micon_api_v3:
     port = serial.Serial()
     debug = 0
 
     def __init__(self, serial_port="/dev/ttyS0", enable_debug=0):
         self.debug = enable_debug
-        self.port = serial.Serial(serial_port, 57600, serial.EIGHTBITS, serial.PARITY_NONE,
-                                  stopbits=serial.STOPBITS_ONE, timeout=0.25)
+        self.port = serial.Serial(
+            serial_port,
+            57600,
+            serial.EIGHTBITS,
+            serial.PARITY_NONE,
+            stopbits=serial.STOPBITS_ONE,
+            timeout=0.25,
+        )
 
     def send(self, message):
         output = bytearray()
@@ -49,15 +56,15 @@ class micon_api_v3:
         for y in range(lines):
             hexline = " "
             strline = ""
-            byte = (y * width)
+            byte = y * width
             prefix = "0x" + hex(byte).split("x")[1].rjust(4, "0")
-            print(prefix + " ", end='')
+            print(prefix + " ", end="")
             for x in range(width):
                 byte = (y * width) + x
                 result = self.eeprom_read(byte)
                 resultint = int(result)
-                resultbyte = resultint.to_bytes(1, 'big')
-                resultchar = (str(resultbyte, 'utf-8'))
+                resultbyte = resultint.to_bytes(1, "big")
+                resultchar = str(resultbyte, "utf-8")
                 if not (resultchar.isprintable()):
                     resultchar = "."
                 strline = strline + resultchar
@@ -65,22 +72,22 @@ class micon_api_v3:
                 hexline = hexline + " " + resulthex
             print(hexline + " ", "|" + strline + "|")
 
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('msg')
+    parser.add_argument("msg")
     args = parser.parse_args()
 
     m = micon_api_v3()
     r = m.send(args.msg)
 
-    if r.decode().startswith('DONE'):
+    if r.decode().startswith("DONE"):
         sys.exit(0)
-    elif args.msg == "VER_GET" and len(r.decode())>2:
+    elif args.msg == "VER_GET" and len(r.decode()) > 2:
         sys.exit(0)
     else:
         sys.exit(255)
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

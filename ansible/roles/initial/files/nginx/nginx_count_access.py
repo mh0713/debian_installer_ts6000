@@ -11,7 +11,10 @@ COUNT_DELTA_MIN = COUNT_DELTA.total_seconds() / 60
 
 
 def count_access(file: Path, time_start: datetime.datetime, delta: int) -> Counter:
-    date_strings = [(time_start + datetime.timedelta(minutes=i)).strftime("[%Y-%m-%dT%H:%M:") for i in range(delta)]
+    date_strings = [
+        (time_start + datetime.timedelta(minutes=i)).strftime("[%Y-%m-%dT%H:%M:")
+        for i in range(delta)
+    ]
     print(date_strings)
     with file.open("r") as f:
         lines = [line for line in f if any((d in line) for d in date_strings)]
@@ -44,8 +47,12 @@ def main():
                 counter += count_access(access_log_1, time_start, int(COUNT_DELTA_MIN))
             print(counter)
             access_delta = dir / "access_delta"
-            access_delta_lines = [f"{count} {status}" for status, count in counter.items()]
-            access_delta.write_text("\n".join(access_delta_lines) + "\n", encoding="utf-8")
+            access_delta_lines = [
+                f"{count} {status}" for status, count in counter.items()
+            ]
+            access_delta.write_text(
+                "\n".join(access_delta_lines) + "\n", encoding="utf-8"
+            )
         except Exception:
             pass
 

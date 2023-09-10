@@ -9,9 +9,11 @@ import functions as func
 
 def main():
     parser = argparse.ArgumentParser(description="Network Configuration Tool")
-    parser.add_argument('--ip', default=None, help='IP address ex) 192.168.22.253/24')
-    parser.add_argument('--gw', default=None, help='default gateway ex) 192.168.22.1')
-    parser.add_argument('--dns', default=None, nargs='*', help='DNS server ex) 8.8.8.8 8.8.4.4')
+    parser.add_argument("--ip", default=None, help="IP address ex) 192.168.22.253/24")
+    parser.add_argument("--gw", default=None, help="default gateway ex) 192.168.22.1")
+    parser.add_argument(
+        "--dns", default=None, nargs="*", help="DNS server ex) 8.8.8.8 8.8.4.4"
+    )
     args = parser.parse_args()
 
     if os.getuid() != 0:
@@ -33,7 +35,9 @@ def main():
     print("* Upgrading apt packages")
     func.proc_run(["apt -y upgrade"])
     print("* Installing required packages")
-    func.proc_run(["apt -y install ansible netplan.io python3-pip python3-passlib curl"])
+    func.proc_run(
+        ["apt -y install ansible netplan.io python3-pip python3-passlib curl"]
+    )
 
     print("* Deleting unnecessary files")
     func.delete_system_connection()
@@ -45,6 +49,7 @@ def main():
 
     func.apply_netplan(netplan)
     print("* Configuration applied")
+
 
 if __name__ == "__main__":
     main()

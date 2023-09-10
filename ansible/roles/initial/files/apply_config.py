@@ -47,8 +47,9 @@ def generate_nginx_cert(
                 f"/C=JP/ST=Aichi/L=Nagoya/O=Buffalo Inc./CN={first_domain}",
             ]
         )
-        out_san.write_text("subjectAltName = " +
-                           ", ".join(f"DNS:{d}" for d in target_conf["domains"]))
+        out_san.write_text(
+            "subjectAltName = " + ", ".join(f"DNS:{d}" for d in target_conf["domains"])
+        )
         # 証明書を作成
         subprocess.run(
             [
@@ -104,8 +105,11 @@ def generate_nginx_sites(
         key_path = cert_dir / f"{target_name}.key"
         proxy_ssl_ciphers = ["HIGH", "!aNULL", "!MD5"]
         if "proxy-ssl-ciphers" in target_conf:
-            proxy_ssl_ciphers += [c for c in target_conf["proxy-ssl-ciphers"]
-                                  if c not in proxy_ssl_ciphers]
+            proxy_ssl_ciphers += [
+                c
+                for c in target_conf["proxy-ssl-ciphers"]
+                if c not in proxy_ssl_ciphers
+            ]
         lines += [
             f"    server_name {' '.join(target_conf['domains'])};",
             f"    access_log {log_path} main;",
@@ -130,10 +134,10 @@ def generate_nginx_sites(
             path: str = location_conf["path"]
             cache_enable: bool = location_conf["cache"]["enable"]
             cache_valid: str = location_conf["cache"].get("valid", "23h")
-            cache_extensions: list[str] = location_conf["cache"].get(
-                "extensions")
+            cache_extensions: list[str] = location_conf["cache"].get("extensions")
             ignore_cache_control: list[str] = location_conf["cache"].get(
-                "ignore-cache-control", False)
+                "ignore-cache-control", False
+            )
 
             lines += [
                 f"    location {path} {{",
@@ -194,19 +198,18 @@ def generate_dnsmasq_hosts(
     if conf["proxy-cache"]["enable"]:
         for target_name, target_conf in conf["proxy-cache"]["targets"].items():
             target_name: str = target_name
-            lines += [f"{a} {d}" for d in target_conf["domains"]
-                      for a in addresses]
+            lines += [f"{a} {d}" for d in target_conf["domains"] for a in addresses]
             lines_inline += [f"<IP> {d}" for d in target_conf["domains"]]
     dnsmasq_hosts.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    dnsmasq_inline_hosts.write_text(
-        "\n".join(lines_inline) + "\n", encoding="utf-8")
+    dnsmasq_inline_hosts.write_text("\n".join(lines_inline) + "\n", encoding="utf-8")
 
 
 if __name__ == "__main__":
     # 引数の処理
     parser = argparse.ArgumentParser()
-    parser.add_argument("--no-restart", dest="restart",
-                        action="store_const", const=False, default=True)
+    parser.add_argument(
+        "--no-restart", dest="restart", action="store_const", const=False, default=True
+    )
     args = parser.parse_args()
 
     # 読み取り
