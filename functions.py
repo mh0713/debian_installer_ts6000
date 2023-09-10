@@ -5,13 +5,16 @@ import subprocess
 import sys
 import textwrap
 
+
 def _proc_run(cmd):
-    '''
+    """
     :param cmd: str 実行するコマンド.
     :rtype: generator
     :return: 標準出力 (行毎).
-    '''
-    proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    """
+    proc = subprocess.Popen(
+        cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+    )
 
     while True:
         line = proc.stdout.readline()
@@ -21,18 +24,22 @@ def _proc_run(cmd):
         if not line and proc.poll() is not None:
             break
 
+
 def proc_run(cmd):
     for line in _proc_run(cmd):
-        sys.stdout.write(line.decode('utf-8'))
+        sys.stdout.write(line.decode("utf-8"))
+
 
 def get_netifs():
     for entry in os.listdir("/sys/class/net"):
         if entry.startswith("en") or entry.startswith("eth"):
             yield entry
 
+
 def delete_system_connection():
-    for filename in  glob.glob("/etc/NetworkManager/system-connections/*"):
+    for filename in glob.glob("/etc/NetworkManager/system-connections/*"):
         os.remove(filename)
+
 
 def create_netplan(args, conf="/etc/netplan/99-default.yaml"):
     from jinja2 import Template

@@ -4,6 +4,8 @@
   become: yes
   roles:
     - startup
+    - role: hostname
+      when: inventory_hostname != "localhost"
     - tailscale
     - cockpit
     - mariadb

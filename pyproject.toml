@@ -1,0 +1,25 @@
+[project]
+name = "proxy"
+version = "0.1.0"
+description = "Add your description here"
+dependencies = [
+    "jinja2>=3.1.2",
+    "pandas>=2.0.3",
+    "nfstream>=6.5.3",
+    "ruamel.yaml>=0.17.32",
+]
+readme = "README.md"
+requires-python = ">= 3.8"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = [
+    "black>=23.9.0",
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
