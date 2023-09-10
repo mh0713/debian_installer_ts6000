@@ -14,6 +14,9 @@ def main():
     parser.add_argument(
         "--dns", default=None, nargs="*", help="DNS server ex) 8.8.8.8 8.8.4.4"
     )
+    parser.add_argument(
+        "--hostname", default=None, help="hostname ex) proxy.example.org"
+    )
     args = parser.parse_args()
 
     if os.getuid() != 0:
@@ -25,10 +28,12 @@ def main():
     ip = func.get_ip() if args.ip is None else args.ip
     gw = func.get_gw() if args.gw is None else args.gw
     dns = func.get_dns() if args.dns is None else args.dns
+    hostname = func.get_hostname() if args.hostname is None else args.hostname
 
     print(f"ip: {ip}")
     print(f"gateway: {gw}")
     print(f"dns: {dns}")
+    print(f"hostname: {hostname}")
 
     print("* Updating apt database")
     func.proc_run("apt update")
@@ -43,6 +48,8 @@ def main():
     func.delete_system_connection()
     print("* Genarating netplan configuration")
     netplan = func.create_netplan({"net_ifs": net_ifs, "ip": ip, "gw": gw, "dns": dns})
+    print("* Genarating netplan configuration")
+    func.create_inventory({"hostname": hostname})
 
     print("* Configuration start")
     func.proc_run("ansible-playbook -i ansible/inventory/local.yml ansible/setup.yml")

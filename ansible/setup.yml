@@ -4,8 +4,7 @@
   become: yes
   roles:
     - startup
-    - role: hostname
-      when: inventory_hostname != "localhost"
+    - hostname
     - tailscale
     - cockpit
     - mariadb
@@ -15,4 +14,4 @@
     - fluent-bit
     - nginx
     # - role: TeraStationV3
-    #   when: ansible_product_name == "TeraStation"
+    #   when: ansible_board_name == "WS5020"
