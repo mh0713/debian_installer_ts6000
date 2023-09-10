@@ -1,4 +1,5 @@
 ansible/inventory/*
 ansible/group_vars/*
+__pycache__/
 /tmp
 *.pyc
