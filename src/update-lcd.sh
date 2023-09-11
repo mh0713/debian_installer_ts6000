@@ -2,7 +2,7 @@
 
 MICONAPL="/usr/local/sbin/micro-evtd -p /dev/ttyS0 -s3"
 
-HOSTNAME=$(hostname)
+HOSTNAME=$(hostname -s)
 
 ip a show br0 && \
   IP=$(ip a show br0 | grep "inet "  | head -n 1 | awk '{print $2}')
