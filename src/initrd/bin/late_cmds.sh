@@ -1,4 +1,5 @@
 #!/bin/sh -x
+
 set -o errexit
 
 echo "start late_cmds.sh"
@@ -13,6 +14,12 @@ do
      t) TARGET=${OPTARG} ;;
   esac
 done
+cp ${SRC}/initrd/bin/in_target.sh ${TARGET}/tmp/
+
+
+[ "x$(cat /sys/devices/virtual/dmi/id/product_name)" != "xTeraStation" ] && exit 0
+
+
 
 cp ${SRC}/initrd/bin/micro-evtd ${TARGET}/usr/local/sbin/
 
@@ -32,8 +39,6 @@ echo gpio-it87 >> ${TARGET}/etc/modules
 echo gpio-ich >> ${TARGET}/etc/modules
 echo pinctrl-dnv >> ${TARGET}/etc/modules
 mkdir -p ${TARGET}/etc/initramfs/post-update.d/
-
-cp ${SRC}/initrd/bin/in_target.sh ${TARGET}/tmp/
 
 echo "end late_cmds.sh"
 
