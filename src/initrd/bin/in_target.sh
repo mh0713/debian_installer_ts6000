@@ -1,7 +1,10 @@
 #!/bin/bash -x
+
 set -o errexit
 
 echo "start in_target.sh"
+
+[ "x$(cat /sys/devices/virtual/dmi/id/product_name)" != "xTeraStation" ] && exit 0
 
 SRC=/media/cdrom/src
 

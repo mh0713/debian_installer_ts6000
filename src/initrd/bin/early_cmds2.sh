@@ -10,12 +10,9 @@ set -o errexit
 
 #if that succeeded setup LCD/LEDS via MiconV3
 if [ $? -eq 0 ]; then
-  ## Set Power LED to on
-  /bin/micro-evtd -p /dev/ttyS0 -s3 "LED_ON 0"
-
+  IP=$(ip a | grep "inet " | grep -v "scope host" | head -n 1 | cut -d " " -f 6)
   ## set LCD message
-  /bin/micro-evtd -p /dev/ttyS0 -s3 "LCD_PUTS 0 Terastation x86","LCD_PUTS 1 Debian Installer"
-
+  /bin/micro-evtd -p /dev/ttyS0 -s3 "LCD_PUTS 1 ${IP%/*}"
 fi
 
 exit 0
