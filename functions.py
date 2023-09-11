@@ -5,8 +5,6 @@ import subprocess
 import sys
 import textwrap
 
-from jinja2 import Template
-
 
 def _proc_run(cmd):
     """
@@ -43,7 +41,27 @@ def delete_system_connection():
         os.remove(filename)
 
 
-def create_netplan(args, conf="/etc/netplan/99-default.yaml"):
+def create_conf(template, args, conf_file):
+    # import jinja2 here because jinja2 is not installed at installer starting
+    from jinja2 import Template
+
+    template = textwrap.dedent(template)[1:-1]
+
+    conf = Template(template).render(args=args)
+
+    try:
+        with open(conf_file, "w") as f:
+            f.write(conf)
+        os.chmod(conf_file, 0o600)
+    except Exception as e:
+        print("failed to save configuration")
+        print(e)
+        return False
+
+    return True
+
+
+def create_netplan(args, conf_file="/etc/netplan/99-default.yaml"):
     if args["ip"] == "dhcp":
         netplan_tpl = """
             network:
@@ -91,20 +109,7 @@ def create_netplan(args, conf="/etc/netplan/99-default.yaml"):
                             {%- endfor %}
         """
 
-    netplan_tpl = textwrap.dedent(netplan_tpl)[1:-1]
-
-    netplan = Template(netplan_tpl).render(args=args)
-
-    try:
-        with open(conf, "w") as f:
-            f.write(netplan)
-        os.chmod(conf, 0o600)
-    except Exception as e:
-        print("failed to save netplan configuration")
-        print(e)
-        return False
-
-    return True
+    return create_conf(netplan_tpl, args, conf_file)
 
 
 def apply_netplan(plan, conf="/etc/netplan/99-default.yaml"):
@@ -151,7 +156,7 @@ def get_hostname():
         return hostname
 
 
-def create_inventory(args, conf="./ansible/inventory/local.yml"):
+def create_inventory(args, conf_file="./ansible/inventory/local.yml"):
     inventory_tpl = """
         all:
             hosts:
@@ -161,16 +166,4 @@ def create_inventory(args, conf="./ansible/inventory/local.yml"):
                     hostname: {{ args["hostname"] }}
     """
 
-    inventory_tpl = textwrap.dedent(inventory_tpl)[1:-1]
-
-    netplan = Template(inventory_tpl).render(args=args)
-
-    try:
-        with open(conf, "w") as f:
-            f.write(netplan)
-    except Exception as e:
-        print("failed to save ansible inventory")
-        print(e)
-        return False
-
-    return True
+    return create_conf(inventory_tpl, args, conf_file)
