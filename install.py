@@ -48,7 +48,7 @@ def main():
     func.delete_system_connection()
     print("* Genarating netplan configuration")
     netplan = func.create_netplan({"net_ifs": net_ifs, "ip": ip, "gw": gw, "dns": dns})
-    print("* Genarating netplan configuration")
+    print("* Genarating ansible inventory")
     func.create_inventory({"hostname": hostname})
 
     print("* Configuration start")
