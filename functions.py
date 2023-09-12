@@ -164,6 +164,7 @@ def create_inventory(args, conf_file="./ansible/inventory/local.yml"):
                     ansible_connection: local
                     ansible_host: localhost
                     hostname: {{ args["hostname"] }}
+                    ip: {{ args["ip"] }}
     """
 
     return create_conf(inventory_tpl, args, conf_file)
