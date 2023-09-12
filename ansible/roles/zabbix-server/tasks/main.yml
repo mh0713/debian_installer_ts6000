@@ -16,6 +16,16 @@
       - zabbix-agent
       - python3-mysqldb
 
+- name: Uninstall unnessesary apache2
+  ansible.builtin.apt:
+    pkg:
+       - apache2
+       - apache2-bin
+       - apache2-data
+       - apache2-utils
+    state: absent
+    purge: true
+
 - name: DB root user password setting
   mysql_user:
     login_user: "{{mariadb_root_user}}"

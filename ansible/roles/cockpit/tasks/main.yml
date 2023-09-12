@@ -2,5 +2,13 @@
   ansible.builtin.apt:
     name: cockpit
 
+- name: Remove motd
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /etc/motd.d/cockpit
+    - /etc/issue.d/cockpit.issue
+
 
 
