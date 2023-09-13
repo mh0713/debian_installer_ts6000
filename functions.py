@@ -69,7 +69,7 @@ def create_netplan(args, conf_file="/etc/netplan/99-default.yaml"):
                 version: 2
                 ethernets:
                 {%- for net_if in args["net_ifs"] %}
-                    - {{ net_if }}:
+                    {{ net_if }}:
                         dhcp4: no
                 {%- endfor %}
                 bridges:
