@@ -24,6 +24,8 @@ def main():
         sys.exit(1)
 
     os.chdir(os.path.dirname(__file__))
+    print(f"running in {os.getcwd()}")
+    input("start ?")
 
     net_ifs = [netif for netif in func.get_netifs()]
 
