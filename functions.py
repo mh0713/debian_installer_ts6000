@@ -118,11 +118,14 @@ def apply_netplan(plan, conf="/etc/netplan/99-default.yaml"):
 
 def get_ip():
     while True:
-        ip = input("IP address (192.168.11.254/24)> ")
-        try:
-            return ipaddress.ip_interface(ip)
-        except:
-            print(f"Invalid IP address format: {ip}")
+        ip = input("IPアドレス or dhcp (192.168.11.254/24 or dhcp)> ")
+        if ip.lower().strip() == "dhcp":
+            return "dhcp"
+        else:
+            try:
+                return ipaddress.ip_interface(ip)
+            except:
+                print(f"IPアドレスの形式が不正です: {ip}")
 
 
 def get_gw():

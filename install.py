@@ -25,15 +25,20 @@ def main():
 
     net_ifs = [netif for netif in func.get_netifs()]
 
-    ip = func.get_ip() if args.ip is None else args.ip
-    gw = func.get_gw() if args.gw is None else args.gw
-    dns = func.get_dns() if args.dns is None else args.dns
     hostname = func.get_hostname() if args.hostname is None else args.hostname
+    ip = func.get_ip() if args.ip is None else args.ip
 
+    if ip == "dhcp":
+        gw = None
+        dns = None
+    else:
+        gw = func.get_gw() if args.gw is None else args.gw
+        dns = func.get_dns() if args.dns is None else args.dns
+
+    print(f"hostname: {hostname}")
     print(f"ip: {ip}")
     print(f"gateway: {gw}")
     print(f"dns: {dns}")
-    print(f"hostname: {hostname}")
 
     print("* Updating apt database")
     func.proc_run("apt update")
