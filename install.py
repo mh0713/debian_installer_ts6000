@@ -23,6 +23,8 @@ def main():
         print("run as root")
         sys.exit(1)
 
+    os.chdir(os.path.dirname(__file__))
+
     net_ifs = [netif for netif in func.get_netifs()]
 
     hostname = func.get_hostname() if args.hostname is None else args.hostname
