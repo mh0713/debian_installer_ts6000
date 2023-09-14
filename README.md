@@ -13,13 +13,15 @@
 ## 使用方法
 
 ```
-$ ssh-copy-id user@<IPアドレス>
-$ ssh user@<IPアドレス>
-$ ./install.py \
-  --ip <IPアドレス>/<ネットマスク> \
-  --gw <デフォルトゲートウェイ> \
-  --dns <DNSサーバー> \
-  --hostname <FQDN(ホスト名でも可)>  
+$ tool/deploy.sh \
+  -i <現在のIPアドレス> \
+  -u <SSHユーザー名(規定値：user)> \
+  -p <SSHパスワード(規定値:password)> \
+  -v <バージョン(規定値:最新のtag+)> 
+```
+例）
+```
+$ tool/deploy.sh -i 192.168.11.123 
 ```
 
 ## TODO
