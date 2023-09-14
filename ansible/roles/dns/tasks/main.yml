@@ -22,14 +22,14 @@
 
 - name: Enable bind
   ansible.builtin.service:
-    name: bind9.service
+    name: named.service
     enabled: true
     state: started
   when: ip != "dhcp"
 
 - name: Disable bind
   ansible.builtin.service:
-    name: bind9.service
+    name: named.service
     enabled: false
     state: stopped
   when: ip == "dhcp"
