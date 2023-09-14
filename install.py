@@ -58,7 +58,10 @@ def main():
     print("* Genarating netplan configuration")
     netplan = func.create_netplan({"net_ifs": net_ifs, "ip": ip, "gw": gw, "dns": dns})
     print("* Genarating ansible inventory")
-    func.create_inventory({"hostname": hostname, "ip": ip})
+    func.create_inventory(
+        {"hostname": hostname, "ip": ip},
+        os.path.join(os.getcwd(), "ansible/inventory/local.yml"),
+    )
 
     print("* Configuration start")
     func.proc_run("ansible-playbook -i ansible/inventory/local.yml ansible/setup.yml")
