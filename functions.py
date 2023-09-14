@@ -145,7 +145,7 @@ def get_dns():
         try:
             ret_dns = []
             for d in dns:
-                ret_dns.append(ipaddress.ip_address(d))
+                ret_dns.append(str(ipaddress.ip_address(d)))
             return ret_dns
 
         except Exception as e:
