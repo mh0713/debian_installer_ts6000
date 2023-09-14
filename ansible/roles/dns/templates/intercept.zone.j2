@@ -8,5 +8,5 @@ $TTL    86400
 
 @       IN      NS      localhost.
 ; Change these IP's to the IP that you give your cache
-@       IN      A       {{ ip }}
-*       IN      A       {{ ip }}
+@       IN      A       {{ ip.split('/')[0] }}
+*       IN      A       {{ ip.split('/')[0] }}
