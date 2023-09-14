@@ -18,3 +18,18 @@
     - { "src": named.conf.local.j2, "dest": /etc/bind/named.conf.local }
     - { "src": named.conf.options.j2, "dest": /etc/bind/named.conf.options }
   notify: Reload bind
+  when: ip != "dhcp"
+
+- name: Enable bind
+  ansible.builtin.service:
+    name: bind9.service
+    enabled: true
+    state: started
+  when: ip != "dhcp"
+
+- name: Disable bind
+  ansible.builtin.service:
+    name: bind9.service
+    enabled: false
+    state: stopped
+  when: ip == "dhcp"
