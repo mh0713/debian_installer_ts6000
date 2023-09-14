@@ -6,7 +6,7 @@ import sys
 import textwrap
 
 
-def _proc_run(cmd):
+def proc_run(cmd):
     """
     :param cmd: str 実行するコマンド.
     :rtype: generator
@@ -19,15 +19,14 @@ def _proc_run(cmd):
     while True:
         line = proc.stdout.readline()
         if line:
-            yield line
+            print(line.decode("utf-8"), end="")
 
         if not line and proc.poll() is not None:
             break
 
-
-def proc_run(cmd):
-    for line in _proc_run(cmd):
-        sys.stdout.write(line.decode("utf-8"))
+    if proc.returncode != 0:
+        print(f"Child Process execution error! code:{proc.returncode}")
+        sys.exit(1)
 
 
 def get_netifs():
@@ -50,13 +49,14 @@ def create_conf(template, args, conf_file):
     conf = Template(template).render(args=args)
 
     try:
+        if os.path.isfile(conf_file):
+            os.remove(conf_file)
         with open(conf_file, "w") as f:
             f.write(conf)
         os.chmod(conf_file, 0o600)
     except Exception as e:
         print("failed to save configuration")
-        print(e)
-        return False
+        raise e
 
     return True
 
@@ -69,7 +69,7 @@ def create_netplan(args, conf_file="/etc/netplan/99-default.yaml"):
                 version: 2
                 ethernets:
                 {%- for net_if in args["net_ifs"] %}
-                    - {{ net_if }}:
+                    {{ net_if }}:
                         dhcp4: no
                 {%- endfor %}
                 bridges:
@@ -144,7 +144,7 @@ def get_dns():
         try:
             ret_dns = []
             for d in dns:
-                ret_dns.append(ipaddress.ip_address(d))
+                ret_dns.append(str(ipaddress.ip_address(d)))
             return ret_dns
 
         except Exception as e:
@@ -167,6 +167,7 @@ def create_inventory(args, conf_file="./ansible/inventory/local.yml"):
                     ansible_connection: local
                     ansible_host: localhost
                     hostname: {{ args["hostname"] }}
+                    ip: {{ args["ip"] }}
     """
 
     return create_conf(inventory_tpl, args, conf_file)

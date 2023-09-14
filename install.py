@@ -23,6 +23,8 @@ def main():
         print("run as root")
         sys.exit(1)
 
+    os.chdir(os.path.dirname(__file__))
+
     net_ifs = [netif for netif in func.get_netifs()]
 
     hostname = func.get_hostname() if args.hostname is None else args.hostname
@@ -40,6 +42,9 @@ def main():
     print(f"gateway: {gw}")
     print(f"dns: {dns}")
 
+    if input("start installation? (Y/N)").upper() != "Y":
+        sys.exit(0)
+
     print("* Updating apt database")
     func.proc_run("apt update")
     print("* Upgrading apt packages")
@@ -54,7 +59,10 @@ def main():
     print("* Genarating netplan configuration")
     netplan = func.create_netplan({"net_ifs": net_ifs, "ip": ip, "gw": gw, "dns": dns})
     print("* Genarating ansible inventory")
-    func.create_inventory({"hostname": hostname})
+    func.create_inventory(
+        {"hostname": hostname, "ip": ip},
+        os.path.join(os.getcwd(), "ansible/inventory/local.yml"),
+    )
 
     print("* Configuration start")
     func.proc_run("ansible-playbook -i ansible/inventory/local.yml ansible/setup.yml")

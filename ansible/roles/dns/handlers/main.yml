@@ -1,5 +1,5 @@
 - name: Reload bind
   ansible.builtin.service:
-    name: bind9.service
+    name: named.service
     enabled: true
     state: restarted
