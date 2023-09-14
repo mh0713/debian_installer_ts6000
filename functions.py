@@ -50,13 +50,13 @@ def create_conf(template, args, conf_file):
     conf = Template(template).render(args=args)
 
     try:
+        os.remove(conf_file)
         with open(conf_file, "w") as f:
             f.write(conf)
         os.chmod(conf_file, 0o600)
     except Exception as e:
         print("failed to save configuration")
-        print(e)
-        return False
+        raise e
 
     return True
 
