@@ -2,6 +2,7 @@ import glob
 import ipaddress
 import os
 import subprocess
+import sys
 import textwrap
 
 
@@ -24,7 +25,8 @@ def proc_run(cmd):
             break
 
     if proc.returncode != 0:
-        raise Exception(f"Child Process execution error! code:{proc.returncode}")
+        print(f"Child Process execution error! code:{proc.returncode}")
+        sys.exit(1)
 
 
 def get_netifs():
