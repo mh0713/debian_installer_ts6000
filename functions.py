@@ -2,11 +2,10 @@ import glob
 import ipaddress
 import os
 import subprocess
-import sys
 import textwrap
 
 
-def _proc_run(cmd):
+def proc_run(cmd):
     """
     :param cmd: str 実行するコマンド.
     :rtype: generator
@@ -19,15 +18,13 @@ def _proc_run(cmd):
     while True:
         line = proc.stdout.readline()
         if line:
-            yield line
+            print(line.decode("utf-8"))
 
         if not line and proc.poll() is not None:
             break
 
-
-def proc_run(cmd):
-    for line in _proc_run(cmd):
-        sys.stdout.write(line.decode("utf-8"))
+    if proc.returncode != 0:
+        raise Exception(f"Child Process execution error! code:{proc.returncode}")
 
 
 def get_netifs():
