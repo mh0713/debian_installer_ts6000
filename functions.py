@@ -18,7 +18,7 @@ def proc_run(cmd):
     while True:
         line = proc.stdout.readline()
         if line:
-            print(line.decode("utf-8"))
+            print(line.decode("utf-8"), end="")
 
         if not line and proc.poll() is not None:
             break
