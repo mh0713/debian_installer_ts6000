@@ -24,8 +24,6 @@ def main():
         sys.exit(1)
 
     os.chdir(os.path.dirname(__file__))
-    print(f"running in {os.getcwd()}")
-    input("start ?")
 
     net_ifs = [netif for netif in func.get_netifs()]
 
@@ -43,6 +41,9 @@ def main():
     print(f"ip: {ip}")
     print(f"gateway: {gw}")
     print(f"dns: {dns}")
+
+    if input("start installation? (Y/N)").upper() != "Y":
+        sys.exit(0)
 
     print("* Updating apt database")
     func.proc_run("apt update")
