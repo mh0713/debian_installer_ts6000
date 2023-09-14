@@ -50,7 +50,8 @@ def create_conf(template, args, conf_file):
     conf = Template(template).render(args=args)
 
     try:
-        os.remove(conf_file)
+        if os.path.isfile(conf_file):
+            os.remove(conf_file)
         with open(conf_file, "w") as f:
             f.write(conf)
         os.chmod(conf_file, 0o600)
