@@ -1,11 +1,18 @@
-#!/bin/bash -x
+#!/bin/bash
 
-cd $(dirname $0)/proxy/
+cd $(dirname $0)/../
 
-while getopts h:v: OPT
+# default
+USER=user
+PASS=password
+VER="$(git tag | sort | tail -n 1)+"
+
+while getopts i:u:p:v: OPT
 do
   case $OPT in
-     h) HOST=${OPTARG} ;;
+     i) IP=${OPTARG} ;;
+     u) USER=${OPTARG} ;;
+     p) PASS=${OPTARG} ;;
      v) VER=${OPTARG} ;;
   esac
 done
@@ -14,8 +21,9 @@ ARCHIVE=~/release/proxy-${VER}.tar.gz
 TARGET=/tmp/proxy
 
 git archive HEAD -o ${ARCHIVE}
-scp ${ARCHIVE} ${HOST}:/tmp/proxy.tar.gz
-ssh -t ${HOST} sudo rm -rf ${TARGET}
-ssh ${HOST} mkdir -p ${TARGET}/ansible/inventory/
-ssh ${HOST} tar xzvf /tmp/proxy.tar.gz -C ${TARGET}
-ssh -t ${HOST} sudo ${TARGET}/install.py --hostname ${HOST}
+ssh-copy-id ${USER}@${IP}
+scp ${ARCHIVE} ${USER}@${IP}:/tmp/proxy.tar.gz
+ssh -t ${USER}@${IP} "echo ${PASS} | sudo -S rm -rf ${TARGET}"
+ssh ${USER}@${IP} mkdir -p ${TARGET}/ansible/inventory/
+ssh ${USER}@${IP} tar xzf /tmp/proxy.tar.gz -C ${TARGET}
+ssh -t ${USER}@${IP} sudo -S ${TARGET}/install.py
