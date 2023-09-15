@@ -68,9 +68,9 @@
     query: select count(*) as cnt from information_schema.tables where table_schema='{{mariadb_zabbix_db}}'
   register: table_count
 
-- name: Debug table_count
-  ansible.builtin.debug:
-    var: table_count
+# - name: Debug table_count
+#   ansible.builtin.debug:
+#     var: table_count
 
 - name: Import initial schema and data
   ansible.builtin.shell:
