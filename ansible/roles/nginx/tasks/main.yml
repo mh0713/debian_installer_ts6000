@@ -15,7 +15,6 @@
     state: absent
   notify: Reload nginx
 
-
 - name: Create nginx dirs
   ansible.builtin.file:
     path: "{{ item.path }}"
@@ -58,11 +57,16 @@
   notify: Reload nginx
 
 
-# - name: Generate config files
-#   ansible.builtin.template:
-#     src: "{{ item.src }}"
-#     dest: "{{ item.dest }}"
-#   with_items:
-#     - { "src": fluent-bit.conf.j2, "dest": /etc/fluent-bit/fluent-bit.conf }
-#     - { "src": parsers.conf.j2, "dest": /etc/fluent-bit/parsers.conf }
-#   notify: Reload fluent-bit
+- name: Enable service
+  ansible.builtin.service:
+    name: nginx.service
+    enabled: true
+    state: started
+  when: ip != "dhcp"
+
+- name: Disable servivce
+  ansible.builtin.service:
+    name: nginx.service
+    enabled: false
+    state: stopped
+  when: ip == "dhcp"
